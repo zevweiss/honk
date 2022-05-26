@@ -989,7 +989,7 @@ func savehonker(user *WhatAbout, url, name, flavor, combos, mj string) error {
 	} else {
 		info, err := investigate(url)
 		if err != nil {
-			ilog.Printf("failed to investigate honker: %s", err)
+			ilog.Printf("failed to investigate honker %s: %s", url, err)
 			return err
 		}
 		url = info.XID
