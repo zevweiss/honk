@@ -2,7 +2,10 @@ GO = /usr/local/go/bin/go
 GOPATH = $(PWD)/.go
 export GO GOPATH
 
-all: honk
+all: honk docs
+
+docs:
+	$(MAKE) -C docs
 
 honk: .preflightcheck schema.sql *.go go.mod
 	$(GO) build -mod=`ls -d vendor 2> /dev/null` -o honk
@@ -16,4 +19,4 @@ clean:
 test:
 	$(GO) test
 
-.PHONY: clean test
+.PHONY: clean test docs
