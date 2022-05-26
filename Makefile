@@ -15,3 +15,5 @@ clean:
 
 test:
 	$(GO) test
+
+.PHONY: clean test
