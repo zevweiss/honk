@@ -368,8 +368,8 @@ func main() {
 		adduser()
 	case "deluser":
 		if len(args) < 2 {
-			fmt.Printf("usage: honk deluser username\n")
-			return
+			fmt.Fprintf(os.Stderr, "usage: honk deluser username\n")
+			os.Exit(1)
 		}
 		deluser(args[1])
 	case "chpass":
@@ -382,29 +382,29 @@ func main() {
 		cleanupdb(arg)
 	case "unplug":
 		if len(args) < 2 {
-			fmt.Printf("usage: honk unplug servername\n")
-			return
+			fmt.Fprintf(os.Stderr, "usage: honk unplug servername\n")
+			os.Exit(1)
 		}
 		name := args[1]
 		unplugserver(name)
 	case "backup":
 		if len(args) < 2 {
-			fmt.Printf("usage: honk backup dirname\n")
-			return
+			fmt.Fprintf(os.Stderr, "usage: honk backup dirname\n")
+			os.Exit(1)
 		}
 		name := args[1]
 		svalbard(name)
 	case "ping":
 		if len(args) < 3 {
-			fmt.Printf("usage: honk ping (from username) (to username or url)\n")
-			return
+			fmt.Fprintf(os.Stderr, "usage: honk ping (from username) (to username or url)\n")
+			os.Exit(1)
 		}
 		name := args[1]
 		targ := args[2]
 		user, err := butwhatabout(name)
 		if err != nil {
 			elog.Printf("unknown user")
-			return
+			os.Exit(1)
 		}
 		ping(user, targ)
 	case "run":
