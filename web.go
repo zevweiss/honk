@@ -2146,16 +2146,62 @@ func somedays() string {
 	return fmt.Sprintf("%d", secs)
 }
 
+func isURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func avatateautogen(r *http.Request) []byte {
+	hex := r.FormValue("hex") == "1"
+	n := r.FormValue("a")
+	return genAvatar(n, hex)
+}
+
 func avatate(w http.ResponseWriter, r *http.Request) {
 	if develMode {
 		loadAvatarColors()
 	}
+	var a []byte
 	n := r.FormValue("a")
-	hex := r.FormValue("hex") == "1"
-	a := genAvatar(n, hex)
+
+	if isURL(n) {
+		uinfo := login.GetUserInfo(r)
+		j, err  := GetJunkFast(uinfo.UserID, n)
+		if err != nil {
+			dlog.Println("avatating: getting junk:", err)
+			a = avatateautogen(r)
+			goto nope
+		}
+		pfpurl, _ := j.GetString("icon", "url")
+		res, err := http.Get(pfpurl)
+		if res.StatusCode != 200 {
+			dlog.Printf("avatating: %s: not ok: %d", n, res.StatusCode)
+			a = avatateautogen(r)
+			goto nope
+		}
+		if err != nil {
+			dlog.Println("avatating: getting pfp url:", err)
+			a = avatateautogen(r)
+			goto nope
+		}
+		defer res.Body.Close()
+
+		pfpbytes, err := io.ReadAll(res.Body)
+		if err != nil {
+			dlog.Println("avatating: io.ReadAll(), whoops:", err)
+			a = avatateautogen(r)
+			goto nope
+		}
+		a = pfpbytes
+	} else {
+		a = avatateautogen(r)
+	}
+
+nope:
 	if !develMode {
 		w.Header().Set("Cache-Control", "max-age="+somedays())
 	}
+
 	w.Write(a)
 }
 
