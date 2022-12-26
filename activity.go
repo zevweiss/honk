@@ -1536,9 +1536,6 @@ func junkuser(user *WhatAbout) junk.Junk {
 			a["url"] = ava
 		} else {
 			u := fmt.Sprintf("https://%s/a?a=%s", serverName, url.QueryEscape(user.URL))
-			if user.Options.Avahex {
-				u += "&hex=1"
-			}
 			a["url"] = u
 		}
 		j["icon"] = a
