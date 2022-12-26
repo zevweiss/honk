@@ -371,7 +371,7 @@ var boxofboxes = cache.New(cache.Options{Filler: func(ident string) (*Box, bool)
 	if err != nil {
 		dlog.Printf("need to get boxes for %s", ident)
 		var j junk.Junk
-		j, err = GetJunk(serverUID, ident)
+		j, err = GetJunk(readyLuserOne, ident)
 		if err != nil {
 			dlog.Printf("error getting boxes: %s", err)
 			return nil, false
@@ -1474,7 +1474,7 @@ func doesitmatter(what string) bool {
 func collectiveaction(honk *Honk) {
 	user := getserveruser()
 	for _, ont := range honk.Onts {
-		dubs := getnameddubs(serverUID, ont)
+		dubs := getnameddubs(readyLuserOne, ont)
 		if len(dubs) == 0 {
 			continue
 		}
@@ -1588,7 +1588,7 @@ var handfull = cache.New(cache.Options{Filler: func(name string) (string, bool) 
 		return href, true
 	}
 	dlog.Printf("fishing for %s", name)
-	j, err := GetJunkFast(serverUID, fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s", m[1], name))
+	j, err := GetJunkFast(readyLuserOne, fmt.Sprintf("https://%s/.well-known/webfinger?resource=acct:%s", m[1], name))
 	if err != nil {
 		ilog.Printf("failed to go fish %s: %s", name, err)
 		return "", true
@@ -1633,7 +1633,7 @@ func investigate(name string) (*SomeThing, error) {
 	if name == "" {
 		return nil, fmt.Errorf("no name")
 	}
-	obj, err := GetJunkFast(serverUID, name)
+	obj, err := GetJunkFast(readyLuserOne, name)
 	if err != nil {
 		return nil, err
 	}

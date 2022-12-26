@@ -68,6 +68,7 @@ type KeyInfo struct {
 }
 
 const serverUID int64 = -2
+const readyLuserOne int64 = 1
 
 type Honk struct {
 	ID       int64
