@@ -650,6 +650,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Move":
 			obj = item
 			what = "move"
+		case "Page":
+			waspage = true
+			fallthrough
 		case "GuessWord": // dealt with below
 			fallthrough
 		case "Audio":
@@ -663,9 +666,6 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Note":
 			fallthrough
 		case "Article":
-			fallthrough
-		case "Page":
-			waspage = true
 			obj = item
 			what = "honk"
 		case "Event":
