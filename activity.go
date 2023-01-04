@@ -541,6 +541,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		var xid, rid, url, convoy string
 		var replies []string
 		var obj junk.Junk
+		waspage := false
 		switch what {
 		case "Delete":
 			obj, ok = item.GetMap("object")
@@ -664,6 +665,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Article":
 			fallthrough
 		case "Page":
+			waspage = true
 			obj = item
 			what = "honk"
 		case "Event":
@@ -735,6 +737,10 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			}
 			if sens, _ := obj["sensitive"].(bool); sens && precis == "" {
 				precis = "unspecified horror"
+			}
+			if waspage {
+				content += fmt.Sprintf(`<p><a href="%s">%s</a>`, url, url)
+				url = xid
 			}
 			rid, ok = obj.GetString("inReplyTo")
 			if !ok {
