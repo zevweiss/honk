@@ -515,6 +515,8 @@ var re_romalink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]
 var re_qtlinks = regexp.MustCompile(`>https://[^\s<]+<`)
 
 func qutify(user *WhatAbout, content string) string {
+	// well this is gross
+	content = strings.ReplaceAll(content, `</span><span class="ellipsis">`, "")
 	mlinks := re_qtlinks.FindAllString(content, -1)
 	for _, m := range mlinks {
 		m = m[1 : len(m)-1]
