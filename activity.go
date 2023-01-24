@@ -508,7 +508,7 @@ func firstofmany(obj junk.Junk, key string) string {
 }
 
 var re_mast0link = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/statuses/[[:digit:]]+`)
-var re_masto1ink = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/statuses/[[:digit:]]+`)
+var re_masto1ink = regexp.MustCompile(`https://[[:alnum:].]+/@[[:alnum:]]+/[[:digit:]]+`)
 var re_misslink = regexp.MustCompile(`https://[[:alnum:].]+/notes/[[:alnum:]]+`)
 var re_honklink = regexp.MustCompile(`https://[[:alnum:].]+/u/[[:alnum:]]+/h/[[:alnum:]]+`)
 var re_romalink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]+`)
@@ -516,8 +516,9 @@ var re_qtlinks = regexp.MustCompile(`>https://[^\s<]+<`)
 
 func qutify(user *WhatAbout, content string) string {
 	// well this is gross
-	content = strings.ReplaceAll(content, `</span><span class="ellipsis">`, "")
-	mlinks := re_qtlinks.FindAllString(content, -1)
+	malcontent := strings.ReplaceAll(content, `</span><span class="ellipsis">`, "")
+	malcontent = strings.ReplaceAll(malcontent, `</span><span class="invisible">`, "")
+	mlinks := re_qtlinks.FindAllString(malcontent, -1)
 	for _, m := range mlinks {
 		m = m[1 : len(m)-1]
 		dlog.Printf("consider qt: %s", m)
