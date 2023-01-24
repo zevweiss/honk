@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ Start collecting quties.
+
 + Fix http signatures for GET requests.
 
 + Fix adjacent mentions.

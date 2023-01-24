@@ -27,6 +27,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -506,6 +507,36 @@ func firstofmany(obj junk.Junk, key string) string {
 	return ""
 }
 
+var re_mast0link = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/statuses/[[:digit:]]+`)
+var re_masto1ink = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/statuses/[[:digit:]]+`)
+var re_misslink = regexp.MustCompile(`https://[[:alnum:].]+/notes/[[:alnum:]]+`)
+var re_honklink = regexp.MustCompile(`https://[[:alnum:].]+/u/[[:alnum:]]+/h/[[:alnum:]]+`)
+var re_romalink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]+`)
+var re_qtlinks = regexp.MustCompile(`>https://[^\s<]+<`)
+
+func qutify(user *WhatAbout, content string) string {
+	mlinks := re_qtlinks.FindAllString(content, -1)
+	for _, m := range mlinks {
+		m = m[1 : len(m)-1]
+		dlog.Printf("consider qt: %s", m)
+		if re_mast0link.MatchString(m) ||
+			re_masto1ink.MatchString(m) ||
+			re_misslink.MatchString(m) ||
+			re_honklink.MatchString(m) ||
+			re_romalink.MatchString(m) {
+			j, err := GetJunk(user.ID, m)
+			dlog.Printf("fetched %s: %s", m, err)
+			if err == nil {
+				q, ok := j.GetString("content")
+				if ok {
+					content = fmt.Sprintf("%s<blockquote>%s</blockquote>", content, q)
+				}
+			}
+		}
+	}
+	return content
+}
+
 func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 	depth := 0
 	maxdepth := 10
@@ -690,9 +721,11 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			return nil
 		}
 		if originate(xid) != origin {
-			ilog.Printf("original sin: %s not from %s", xid, origin)
-			item.Write(ilog.Writer())
-			return nil
+			if !develMode && origin != "" {
+				ilog.Printf("original sin: %s not from %s", xid, origin)
+				item.Write(ilog.Writer())
+				return nil
+			}
 		}
 
 		var xonk Honk
@@ -742,6 +775,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				content += fmt.Sprintf(`<p><a href="%s">%s</a>`, url, url)
 				url = xid
 			}
+			content = qutify(user, content)
 			rid, ok = obj.GetString("inReplyTo")
 			if !ok {
 				if robj, ok := obj.GetMap("inReplyTo"); ok {
