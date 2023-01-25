@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ Filter to match anything with summary/warning.
+
 + Start collecting quties.
 
 + Fix http signatures for GET requests.
