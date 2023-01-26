@@ -50,6 +50,8 @@ var honkSep = "h"
 
 var develMode = false
 
+var allemus []Emu
+
 func getuserstyle(u *login.UserInfo) template.HTMLAttr {
 	if u == nil {
 		return ""
@@ -147,6 +149,15 @@ func homepage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	honkpage(w, u, honks, templinfo)
+}
+
+func showemus(w http.ResponseWriter, r *http.Request) {
+	templinfo := getInfo(r)
+	templinfo["Emus"] = allemus
+	err := readviews.Execute(w, "emus.html", templinfo)
+	if err != nil {
+		elog.Print(err)
+	}
 }
 
 func showfunzone(w http.ResponseWriter, r *http.Request) {
@@ -2422,6 +2433,30 @@ func addcspheaders(next http.Handler) http.Handler {
 	})
 }
 
+func emuinit() {
+	var emunames []string
+	dir, err := os.Open(dataDir + "/emus")
+	if err == nil {
+		emunames, _ = dir.Readdirnames(0)
+		dir.Close()
+	}
+	for _, e := range emunames {
+		if len(e) <= 4 {
+			continue
+		}
+		ext := e[len(e)-4:]
+		emu := Emu{
+			ID:   fmt.Sprintf("/emu/%s", e),
+			Name: e[:len(e)-4],
+			Type: "image/" + ext[1:],
+		}
+		allemus = append(allemus, emu)
+	}
+	sort.Slice(allemus, func(i, j int) bool {
+		return allemus[i].Name < allemus[j].Name
+	})
+}
+
 func serve() {
 	db := opendatabase()
 	login.Init(login.InitArgs{Db: db, Logger: ilog, Insecure: develMode, SameSiteStrict: !develMode})
@@ -2436,6 +2471,7 @@ func serve() {
 	go tracker()
 	go bgmonitor()
 	loadLingo()
+	emuinit()
 
 	readviews = templates.Load(develMode,
 		viewDir+"/views/honkpage.html",
@@ -2454,6 +2490,7 @@ func serve() {
 		viewDir+"/views/msg.html",
 		viewDir+"/views/header.html",
 		viewDir+"/views/onts.html",
+		viewDir+"/views/emus.html",
 		viewDir+"/views/honkpage.js",
 	)
 	if !develMode {
@@ -2555,6 +2592,7 @@ func serve() {
 	loggedin.HandleFunc("/t", showconvoy)
 	loggedin.HandleFunc("/q", showsearch)
 	loggedin.HandleFunc("/hydra", webhydra)
+	loggedin.HandleFunc("/emus", showemus)
 	loggedin.Handle("/submithonker", login.CSRFWrap("submithonker", http.HandlerFunc(submithonker)))
 
 	err = http.Serve(listener, mux)

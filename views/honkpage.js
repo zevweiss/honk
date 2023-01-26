@@ -446,6 +446,24 @@ function playit(elem, word, wordlist, xid) {
 		module.addguesscontrols(elem, word, wordlist, xid)
 	})
 }
+function addemu(data){
+	const box = document.getElementById("honknoise");
+	box.value += data;
+}
+function loademus() {
+	div = document.getElementById("emupicker")
+	request = new XMLHttpRequest();
+	request.open('GET', '/emus')
+	request.onload = function(){
+		div.innerHTML = request.responseText
+	}
+	if (div.style.display === "none") {
+		div.style.display = "block";
+	} else {
+		div.style.display = "none";
+	}
+	request.send()
+}
 
 // init
 (function() {
@@ -490,6 +508,7 @@ function playit(elem, word, wordlist, xid) {
 		return showhonkform()
 	}
 	document.getElementById("checkinbutton").onclick = fillcheckin
+	document.getElementById("emuload").onclick = loademus
 	document.querySelector("#donker input").onchange = updatedonker
 	document.querySelector("button[name=cancel]").onclick = cancelhonking
 })();
