@@ -2,6 +2,10 @@ changelog
 
 === next
 
++ Emu peeker
+
++ CSP compliance
+
 + Filter to match anything with summary/warning.
 
 + Start collecting quties.

@@ -5,12 +5,12 @@ var tophid = { }
 var servermsgs = { }
 
 function encode(hash) {
-        var s = []
-        for (var key in hash) {
-                var val = hash[key]
-                s.push(encodeURIComponent(key) + "=" + encodeURIComponent(val))
-        }
-        return s.join("&")
+	var s = []
+	for (var key in hash) {
+		var val = hash[key]
+		s.push(encodeURIComponent(key) + "=" + encodeURIComponent(val))
+	}
+	return s.join("&")
 }
 function post(url, data) {
 	var x = new XMLHttpRequest()
