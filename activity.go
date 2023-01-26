@@ -778,7 +778,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				content += fmt.Sprintf(`<p><a href="%s">%s</a>`, url, url)
 				url = xid
 			}
-			content = qutify(user, content)
+			if user.Options.InlineQuotes {
+				content = qutify(user, content)
+			}
 			rid, ok = obj.GetString("inReplyTo")
 			if !ok {
 				if robj, ok := obj.GetMap("inReplyTo"); ok {

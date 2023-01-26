@@ -1134,6 +1134,11 @@ func saveuser(w http.ResponseWriter, r *http.Request) {
 	} else {
 		options.MentionAll = false
 	}
+	if r.FormValue("inlineqts") == "inlineqts" {
+		options.InlineQuotes = true
+	} else {
+		options.InlineQuotes = false
+	}
 	if r.FormValue("maps") == "apple" {
 		options.MapLink = "apple"
 	} else {
