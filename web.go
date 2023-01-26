@@ -50,16 +50,16 @@ var honkSep = "h"
 
 var develMode = false
 
-func getuserstyle(u *login.UserInfo) template.CSS {
+func getuserstyle(u *login.UserInfo) template.HTMLAttr {
 	if u == nil {
 		return ""
 	}
 	user, _ := butwhatabout(u.Username)
-	css := template.CSS("")
+	class := template.HTMLAttr("")
 	if user.Options.SkinnyCSS {
-		css += "main { max-width: 700px; }\n"
+		class += `class="skinny"`
 	}
-	return css
+	return class
 }
 
 func getmaplink(u *login.UserInfo) string {
@@ -80,6 +80,7 @@ func getInfo(r *http.Request) map[string]interface{} {
 	templinfo["LocalStyleParam"] = getassetparam(dataDir + "/views/local.css")
 	templinfo["JSParam"] = getassetparam(viewDir + "/views/honkpage.js")
 	templinfo["LocalJSParam"] = getassetparam(dataDir + "/views/local.js")
+	templinfo["MiscJSParam"] = getassetparam(dataDir + "/views/misc.js")
 	templinfo["ServerName"] = serverName
 	templinfo["IconName"] = iconName
 	templinfo["UserSep"] = userSep
@@ -1429,7 +1430,7 @@ func edithonkpage(w http.ResponseWriter, r *http.Request) {
 	templinfo["Noise"] = noise
 	templinfo["SavedPlace"] = honk.Place
 	if tm := honk.Time; tm != nil {
-		templinfo["ShowTime"] = ";"
+		templinfo["ShowTime"] = " "
 		templinfo["StartTime"] = tm.StartTime.Format("2006-01-02 15:04")
 		if tm.Duration != 0 {
 			templinfo["Duration"] = tm.Duration
@@ -1751,7 +1752,7 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 		templinfo["Noise"] = r.FormValue("noise")
 		templinfo["SavedFile"] = donkxid
 		if tm := honk.Time; tm != nil {
-			templinfo["ShowTime"] = ";"
+			templinfo["ShowTime"] = " "
 			templinfo["StartTime"] = tm.StartTime.Format("2006-01-02 15:04")
 			if tm.Duration != 0 {
 				templinfo["Duration"] = tm.Duration
@@ -2414,6 +2415,13 @@ func bgmonitor() {
 	}
 }
 
+func addcspheaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; img-src 'self'; report-uri /csp-violation")
+		next.ServeHTTP(w, r)
+	})
+}
+
 func serve() {
 	db := opendatabase()
 	login.Init(login.InitArgs{Db: db, Logger: ilog, Insecure: develMode, SameSiteStrict: !develMode})
@@ -2466,6 +2474,7 @@ func serve() {
 	}
 
 	mux := mux.NewRouter()
+	mux.Use(addcspheaders)
 	mux.Use(login.Checker)
 
 	mux.Handle("/api", login.TokenRequired(http.HandlerFunc(apihandler)))
@@ -2503,6 +2512,7 @@ func serve() {
 	getters.HandleFunc("/style.css", serveviewasset)
 	getters.HandleFunc("/honkpage.js", serveviewasset)
 	getters.HandleFunc("/wonk.js", serveviewasset)
+	getters.HandleFunc("/misc.js", serveviewasset)
 	getters.HandleFunc("/local.css", servedataasset)
 	getters.HandleFunc("/local.js", servedataasset)
 	getters.HandleFunc("/icon.png", servedataasset)
