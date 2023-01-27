@@ -446,16 +446,22 @@ function playit(elem, word, wordlist, xid) {
 		module.addguesscontrols(elem, word, wordlist, xid)
 	})
 }
-function addemu(data){
+function addemu(elem) {
+	const data = elem.alt
 	const box = document.getElementById("honknoise");
 	box.value += data;
 }
 function loademus() {
 	div = document.getElementById("emupicker")
-	request = new XMLHttpRequest();
+	request = new XMLHttpRequest()
 	request.open('GET', '/emus')
-	request.onload = function(){
+	request.onload = function() {
 		div.innerHTML = request.responseText
+		div.querySelectorAll(".emu").forEach(function(el) {
+			el.onclick = function() {
+				addemu(el)
+			}
+		})
 	}
 	if (div.style.display === "none") {
 		div.style.display = "block";
