@@ -290,12 +290,14 @@ func imaginate(honk *Honk) {
 	htf.String(honk.Noise)
 }
 
+var re_dangerous = regexp.MustCompile("^[a-zA-Z]{2}:")
+
 func translate(honk *Honk) {
 	if honk.Format == "html" {
 		return
 	}
 	noise := honk.Noise
-	if strings.HasPrefix(noise, "DZ:") {
+	if re_dangerous.MatchString(noise) {
 		idx := strings.Index(noise, "\n")
 		if idx == -1 {
 			honk.Precis = noise
