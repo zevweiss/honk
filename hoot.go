@@ -57,7 +57,7 @@ func hootextractor(r io.Reader, url string, seen map[string]bool) string {
 		if htfilter.HasClass(node, "Emoji") && alt != "" {
 			return alt
 		}
-		return fmt.Sprintf(" <img src='%s'>", htfilter.GetAttr(node, "src"))
+		return fmt.Sprintf(" <img src='%s' alt='%s'>", htfilter.GetAttr(node, "src"), alt)
 	}
 
 	var buf strings.Builder
