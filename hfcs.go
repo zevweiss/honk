@@ -407,6 +407,12 @@ func unsee(honks []*Honk, userid int64) {
 				h.Open = ""
 			}
 		}
+	} else {
+		for _, h := range honks {
+			if h.Precis != "" {
+				h.Open = ""
+			}
+		}
 	}
 }
 
