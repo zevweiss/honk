@@ -1290,7 +1290,7 @@ func jonkjonk(user *WhatAbout, h *Honk) (junk.Junk, junk.Junk) {
 		if len(atts) > 0 {
 			jo["attachment"] = atts
 		}
-		jo["summary"] = html.EscapeString(h.Precis)
+		jo["summary"] = h.Precis
 		jo["content"] = h.Noise
 		j["object"] = jo
 	case "bonk":
