@@ -521,14 +521,12 @@ func qutify(user *WhatAbout, content string) string {
 	mlinks := re_qtlinks.FindAllString(malcontent, -1)
 	for _, m := range mlinks {
 		m = m[1 : len(m)-1]
-		dlog.Printf("consider qt: %s", m)
 		if re_mast0link.MatchString(m) ||
 			re_masto1ink.MatchString(m) ||
 			re_misslink.MatchString(m) ||
 			re_honklink.MatchString(m) ||
 			re_romalink.MatchString(m) {
 			j, err := GetJunk(user.ID, m)
-			dlog.Printf("fetched %s: %s", m, err)
 			if err == nil {
 				q, ok := j.GetString("content")
 				if ok {
