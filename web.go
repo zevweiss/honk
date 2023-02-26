@@ -1904,7 +1904,7 @@ func submithonker(w http.ResponseWriter, r *http.Request) *Honker {
 	combos = " " + combos + " "
 	honkerid, _ := strconv.ParseInt(r.FormValue("honkerid"), 10, 0)
 
-	re_namecheck := regexp.MustCompile("[\\pL[:digit:]_.-]+")
+	re_namecheck := regexp.MustCompile("^[\\pL[:digit:]_.-]+$")
 	if name != "" && !re_namecheck.MatchString(name) {
 		http.Error(w, "please use a plainer name", http.StatusInternalServerError)
 		return nil
