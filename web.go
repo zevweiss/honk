@@ -1923,15 +1923,15 @@ func submithonker(w http.ResponseWriter, r *http.Request) *Honker {
 
 	if honkerid > 0 {
 		if r.FormValue("delete") == "delete" {
-			unfollowyou(user, honkerid)
+			unfollowyou(user, honkerid, false)
 			stmtDeleteHonker.Exec(honkerid)
 			return h
 		}
 		if r.FormValue("unsub") == "unsub" {
-			unfollowyou(user, honkerid)
+			unfollowyou(user, honkerid, false)
 		}
 		if r.FormValue("sub") == "sub" {
-			followyou(user, honkerid)
+			followyou(user, honkerid, false)
 		}
 		_, err := stmtUpdateHonker.Exec(name, combos, mj, honkerid, u.UserID)
 		if err != nil {
@@ -1955,6 +1955,9 @@ func submithonker(w http.ResponseWriter, r *http.Request) *Honker {
 	if err != nil {
 		http.Error(w, "had some trouble with that: "+err.Error(), http.StatusInternalServerError)
 		return nil
+	}
+	if flavor == "presub" {
+		followyou(user, honkerid, false)
 	}
 	h.ID = id
 	return h
