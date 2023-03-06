@@ -2112,11 +2112,29 @@ func somedays() string {
 	return fmt.Sprintf("%d", secs)
 }
 
+func lookatme(ava string) string {
+	if strings.Contains(ava, serverName + "/" + userSep) {
+		idx := strings.LastIndexByte(ava, '/')
+		if idx < len(ava) {
+			name := ava[idx+1:]
+			user, _ := butwhatabout(name)
+			if user != nil && user.URL == ava {
+				return user.Options.Avatar
+			}
+		}
+	}
+	return ""
+}
+
 func avatate(w http.ResponseWriter, r *http.Request) {
 	if develMode {
 		loadAvatarColors()
 	}
 	n := r.FormValue("a")
+	if redir := lookatme(n); redir != "" {
+		http.Redirect(w, r, redir, http.StatusSeeOther)
+		return
+	}
 	a := genAvatar(n)
 	if !develMode {
 		w.Header().Set("Cache-Control", "max-age="+somedays())
