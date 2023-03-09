@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ Some fixes for image descriptions.
+
 + Fix double htmlization of subject lines.
 
 + Remove the wonk support. Fun's over, back to work.

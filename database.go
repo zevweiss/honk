@@ -574,6 +574,20 @@ func savefileandxid(name string, desc string, url string, media string, local bo
 	return fileid, xid, nil
 }
 
+func finddonkid(fileid int64, url string) *Donk {
+	donk := new(Donk)
+	row := stmtFindFileId.QueryRow(fileid, url)
+	err := row.Scan(&donk.XID, &donk.Local, &donk.Desc)
+	if err == nil {
+		donk.FileID = fileid
+		return donk
+	}
+	if err != sql.ErrNoRows {
+		elog.Printf("error finding file: %s", err)
+	}
+	return nil
+}
+
 func finddonk(url string) *Donk {
 	donk := new(Donk)
 	row := stmtFindFile.QueryRow(url)
@@ -1079,7 +1093,7 @@ var stmtHonksByOntology, stmtHonksForUser, stmtHonksForMe, stmtSaveDub, stmtHonk
 var stmtHonksFromLongAgo *sql.Stmt
 var stmtHonksByHonker, stmtSaveHonk, stmtUserByName, stmtUserByNumber *sql.Stmt
 var stmtEventHonks, stmtOneBonk, stmtFindZonk, stmtFindXonk, stmtSaveDonk *sql.Stmt
-var stmtFindFile, stmtGetFileData, stmtSaveFileData, stmtSaveFile *sql.Stmt
+var stmtFindFile, stmtFindFileId, stmtGetFileData, stmtSaveFileData, stmtSaveFile *sql.Stmt
 var stmtCheckFileData *sql.Stmt
 var stmtAddDoover, stmtGetDoovers, stmtLoadDoover, stmtZapDoover, stmtOneHonker *sql.Stmt
 var stmtUntagged, stmtDeleteHonk, stmtDeleteDonks, stmtDeleteOnts, stmtSaveZonker *sql.Stmt
@@ -1149,6 +1163,7 @@ func prepareStatements(db *sql.DB) {
 	stmtGetFileData = preparetodie(blobdb, "select media, content from filedata where xid = ?")
 	stmtFindXonk = preparetodie(db, "select honkid from honks where userid = ? and xid = ?")
 	stmtFindFile = preparetodie(db, "select fileid, xid from filemeta where url = ? and local = 1")
+	stmtFindFileId = preparetodie(db, "select xid, local, description from filemeta where fileid = ? and url = ? and local = 1")
 	stmtUserByName = preparetodie(db, "select userid, username, displayname, about, pubkey, seckey, options from users where username = ? and userid > 0")
 	stmtUserByNumber = preparetodie(db, "select userid, username, displayname, about, pubkey, seckey, options from users where userid = ?")
 	stmtSaveDub = preparetodie(db, "insert into honkers (userid, name, xid, flavor, combos, owner, meta, folxid) values (?, ?, ?, ?, '', '', '', ?)")

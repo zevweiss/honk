@@ -1678,12 +1678,19 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 		}
 		if d != nil {
 			honk.Donks = append(honk.Donks, d)
-			donkxid = d.XID
+			donkxid = fmt.Sprintf("%s:%d", d.XID, d.FileID)
 		}
 	} else {
-		xid := donkxid
+		p := strings.Split(donkxid, ":")
+		xid := p[0]
 		url := fmt.Sprintf("https://%s/d/%s", serverName, xid)
-		donk := finddonk(url)
+		var donk *Donk
+		if len(p) > 1 {
+			fileid, _ := strconv.ParseInt(p[1], 10, 0)
+			donk = finddonkid(fileid, url)
+		} else {
+			donk = finddonk(url)
+		}
 		if donk != nil {
 			honk.Donks = append(honk.Donks, donk)
 		} else {
