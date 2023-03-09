@@ -1142,8 +1142,13 @@ func activatedonks(donks []*Donk) []junk.Junk {
 		}
 		jd := junk.New()
 		jd["mediaType"] = d.Media
-		jd["name"] = d.Name
-		jd["summary"] = html.EscapeString(d.Desc)
+		if false {
+			// nobody does this right
+			jd["name"] = d.Name
+			jd["summary"] = html.EscapeString(d.Desc)
+		} else {
+			jd["name"] = d.Desc
+		}
 		jd["type"] = "Document"
 		jd["url"] = d.URL
 		atts = append(atts, jd)
