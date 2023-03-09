@@ -2113,7 +2113,7 @@ func somedays() string {
 }
 
 func lookatme(ava string) string {
-	if strings.Contains(ava, serverName + "/" + userSep) {
+	if strings.Contains(ava, serverName+"/"+userSep) {
 		idx := strings.LastIndexByte(ava, '/')
 		if idx < len(ava) {
 			name := ava[idx+1:]

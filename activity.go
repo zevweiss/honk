@@ -511,7 +511,8 @@ var re_mast0link = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/
 var re_masto1ink = regexp.MustCompile(`https://[[:alnum:].]+/@[[:alnum:]]+/[[:digit:]]+`)
 var re_misslink = regexp.MustCompile(`https://[[:alnum:].]+/notes/[[:alnum:]]+`)
 var re_honklink = regexp.MustCompile(`https://[[:alnum:].]+/u/[[:alnum:]]+/h/[[:alnum:]]+`)
-var re_romalink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]+`)
+var re_r0malink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]+`)
+var re_roma1ink = regexp.MustCompile(`https://[[:alnum:].]+/notice/[[:alnum:]]+`)
 var re_qtlinks = regexp.MustCompile(`>https://[^\s<]+<`)
 
 func qutify(user *WhatAbout, content string) string {
@@ -521,11 +522,10 @@ func qutify(user *WhatAbout, content string) string {
 	mlinks := re_qtlinks.FindAllString(malcontent, -1)
 	for _, m := range mlinks {
 		m = m[1 : len(m)-1]
-		if re_mast0link.MatchString(m) ||
-			re_masto1ink.MatchString(m) ||
+		if re_mast0link.MatchString(m) || re_masto1ink.MatchString(m) ||
 			re_misslink.MatchString(m) ||
 			re_honklink.MatchString(m) ||
-			re_romalink.MatchString(m) {
+			re_r0malink.MatchString(m) || re_roma1ink.MatchString(m) {
 			j, err := GetJunk(user.ID, m)
 			if err == nil {
 				q, ok := j.GetString("content")
