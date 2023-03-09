@@ -1142,7 +1142,7 @@ func activatedonks(donks []*Donk) []junk.Junk {
 		}
 		jd := junk.New()
 		jd["mediaType"] = d.Media
-		if false {
+		if !strings.Contains(d.Media, "image") {
 			// nobody does this right
 			jd["name"] = d.Name
 			jd["summary"] = html.EscapeString(d.Desc)
