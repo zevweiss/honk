@@ -381,8 +381,6 @@ func inbox(w http.ResponseWriter, r *http.Request) {
 		ilog.Printf("inbox message failed signature for %s from %s: %s", keyname, r.Header.Get("X-Forwarded-For"), err)
 		if keyname != "" {
 			ilog.Printf("bad signature from %s", keyname)
-			ilog.Writer().Write(payload)
-			ilog.Writer().Write([]byte{'\n'})
 		}
 		http.Error(w, "what did you call me?", http.StatusTeapot)
 		return
@@ -487,8 +485,6 @@ func serverinbox(w http.ResponseWriter, r *http.Request) {
 		ilog.Printf("inbox message failed signature for %s from %s: %s", keyname, r.Header.Get("X-Forwarded-For"), err)
 		if keyname != "" {
 			ilog.Printf("bad signature from %s", keyname)
-			ilog.Writer().Write(payload)
-			ilog.Writer().Write([]byte{'\n'})
 		}
 		http.Error(w, "what did you call me?", http.StatusTeapot)
 		return
