@@ -33,6 +33,7 @@ type Filter struct {
 	IncludeAudience bool   `json:",omitempty"`
 	Text            string `json:",omitempty"`
 	re_text         *regexp.Regexp
+	IsReply         bool   `json:",omitempty"`
 	IsAnnounce      bool   `json:",omitempty"`
 	AnnounceOf      string `json:",omitempty"`
 	Reject          bool   `json:",omitempty"`
@@ -304,6 +305,13 @@ func matchfilterX(h *Honk, f *Filter) string {
 					break
 				}
 			}
+		}
+	}
+	if match && f.IsReply {
+		match = false
+		if h.RID != "" {
+			match = true
+			rv += " reply"
 		}
 	}
 	if match && f.IsAnnounce {

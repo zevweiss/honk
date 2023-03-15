@@ -2004,6 +2004,7 @@ func savehfcs(w http.ResponseWriter, r *http.Request) {
 	filt.Actor = strings.TrimSpace(r.FormValue("actor"))
 	filt.IncludeAudience = r.FormValue("incaud") == "yes"
 	filt.Text = strings.TrimSpace(r.FormValue("filttext"))
+	filt.IsReply = r.FormValue("isreply") == "yes"
 	filt.IsAnnounce = r.FormValue("isannounce") == "yes"
 	filt.AnnounceOf = strings.TrimSpace(r.FormValue("announceof"))
 	filt.Reject = r.FormValue("doreject") == "yes"
