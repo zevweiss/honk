@@ -574,6 +574,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		var replies []string
 		var obj junk.Junk
 		waspage := false
+		preferorig := false
 		switch what {
 		case "Delete":
 			obj, ok = item.GetMap("object")
@@ -688,6 +689,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Audio":
 			fallthrough
 		case "Image":
+			preferorig = true
 			fallthrough
 		case "Video":
 			fallthrough
@@ -837,6 +839,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				mt, _ := att.GetString("mediaType")
 				u, ok := att.GetString("url")
 				if !ok {
+					u, ok = att.GetString("href")
+				}
+				if !ok {
 					if ua, ok := att.GetArray("url"); ok && len(ua) > 0 {
 						u, ok = ua[0].(string)
 						if !ok {
@@ -863,7 +868,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				localize := false
 				if numatts > 4 {
 					ilog.Printf("excessive attachment: %s", at)
-				} else if at == "Document" || at == "Image" {
+				} else if at == "Document" || at == "Image" || (preferorig && at == "Link") {
 					mt = strings.ToLower(mt)
 					dlog.Printf("attachment: %s %s", mt, u)
 					if mt == "text/plain" || mt == "application/pdf" ||
@@ -876,23 +881,42 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				if skipMedia(&xonk) {
 					localize = false
 				}
+				if preferorig && !localize {
+					return
+				}
 				donk := savedonk(u, name, desc, mt, localize)
 				if donk != nil {
 					xonk.Donks = append(xonk.Donks, donk)
 				}
 				numatts++
 			}
-			atts, _ := obj.GetArray("attachment")
-			for _, atti := range atts {
-				att, ok := atti.(junk.Junk)
-				if !ok {
-					ilog.Printf("attachment that wasn't map?")
-					continue
+			if preferorig {
+				atts, _ := obj.GetArray("url")
+				for _, atti := range atts {
+					att, ok := atti.(junk.Junk)
+					if !ok {
+						ilog.Printf("attachment that wasn't map?")
+						continue
+					}
+					procatt(att)
 				}
-				procatt(att)
+				if numatts == 0 {
+					preferorig = false
+				}
 			}
-			if att, ok := obj.GetMap("attachment"); ok {
-				procatt(att)
+			if !preferorig {
+				atts, _ := obj.GetArray("attachment")
+				for _, atti := range atts {
+					att, ok := atti.(junk.Junk)
+					if !ok {
+						ilog.Printf("attachment that wasn't map?")
+						continue
+					}
+					procatt(att)
+				}
+				if att, ok := obj.GetMap("attachment"); ok {
+					procatt(att)
+				}
 			}
 			tags, _ := obj.GetArray("tag")
 			for _, tagi := range tags {
