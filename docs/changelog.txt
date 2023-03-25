@@ -1,6 +1,10 @@
 changelog
 
-=== next
+=== 0.9.91 One More Time
+
++ Swallow a follow bug.
+
+=== 0.9.9 Eat the Bugs
 
 + Some fixes for image descriptions.
 
