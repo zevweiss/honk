@@ -1612,7 +1612,18 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 		}
 	}
 
+	var convoy string
 	noise = strings.Replace(noise, "\r", "", -1)
+	if updatexid == "" && rid == "" {
+		noise = re_convoy.ReplaceAllStringFunc(noise, func(m string) string {
+			convoy = m[7:]
+			convoy = strings.TrimSpace(convoy)
+			if !re_convalidate.MatchString(convoy) {
+				convoy = ""
+			}
+			return ""
+		})
+	}
 	noise = quickrename(noise, userinfo.UserID)
 	noise = hooterize(noise)
 	honk.Noise = noise
@@ -1620,7 +1631,6 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 	noise = honk.Noise
 	translate(honk)
 
-	var convoy string
 	if rid != "" {
 		xonk := getxonk(userinfo.UserID, rid)
 		if xonk == nil {
