@@ -1,5 +1,9 @@
 changelog
 
+=== next
+
++ search can now load external posts
+
 === 0.9.91 One More Time
 
 + Swallow a follow bug.

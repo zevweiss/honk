@@ -549,7 +549,7 @@ func serveractor(w http.ResponseWriter, r *http.Request) {
 
 func ximport(w http.ResponseWriter, r *http.Request) {
 	u := login.GetUserInfo(r)
-	xid := strings.TrimSpace(r.FormValue("xid"))
+	xid := strings.TrimSpace(r.FormValue("q"))
 	xonk := getxonk(u.UserID, xid)
 	if xonk == nil {
 		p, _ := investigate(xid)
@@ -788,6 +788,10 @@ func showconvoy(w http.ResponseWriter, r *http.Request) {
 }
 func showsearch(w http.ResponseWriter, r *http.Request) {
 	q := r.FormValue("q")
+	if strings.HasPrefix(q, "https://") {
+		ximport(w, r)
+		return
+	}
 	u := login.GetUserInfo(r)
 	honks := gethonksbysearch(u.UserID, q, 0)
 	templinfo := getInfo(r)
