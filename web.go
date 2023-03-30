@@ -395,7 +395,7 @@ func inbox(w http.ResponseWriter, r *http.Request) {
 	case "Ping":
 		id, _ := j.GetString("id")
 		ilog.Printf("ping from %s: %s", who, id)
-		pong(user, who, obj)
+		pong(user, who, id)
 	case "Pong":
 		ilog.Printf("pong from %s: %s", who, obj)
 	case "Follow":
