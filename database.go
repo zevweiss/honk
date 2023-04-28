@@ -250,7 +250,7 @@ func gethonksforme(userid int64, wanted int64) []*Honk {
 func gethonksfromlongago(userid int64, wanted int64) []*Honk {
 	now := time.Now()
 	var honks []*Honk
-	for i := 1; i <= 3; i++ {
+	for i := 1; i <= 4; i++ {
 		dt := time.Date(now.Year()-i, now.Month(), now.Day(), now.Hour(), now.Minute(),
 			now.Second(), 0, now.Location())
 		dt1 := dt.Add(-36 * time.Hour).UTC().Format(dbtimeformat)
