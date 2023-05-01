@@ -463,7 +463,7 @@ func memetize(honk *Honk) {
 	honk.Noise = re_memes.ReplaceAllStringFunc(honk.Noise, repl)
 }
 
-var re_quickmention = regexp.MustCompile("(^|[ \n])@[[:alnum:]]+([ \n.,']|$)")
+var re_quickmention = regexp.MustCompile("(^|[ \n])@[[:alnum:]_]+([ \n:;.,']|$)")
 
 func quickrename(s string, userid int64) string {
 	nonstop := true
@@ -479,6 +479,7 @@ func quickrename(s string, userid int64) string {
 			m = m[1:]
 			tail := ""
 			if last := m[len(m)-1]; last == ' ' || last == '\n' ||
+				last == ':' || last == ';' ||
 				last == '.' || last == ',' || last == '\'' {
 				tail = m[len(m)-1:]
 				m = m[:len(m)-1]
