@@ -1019,6 +1019,7 @@ func trackback(xid string, r *http.Request) {
 
 func showonehonk(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
+	xid := mux.Vars(r)["xid"]
 	user, err := butwhatabout(name)
 	if err != nil {
 		http.NotFound(w, r)
@@ -1028,12 +1029,14 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 		return
 	}
-	xid := fmt.Sprintf("https://%s%s", serverName, r.URL.Path)
+	xid = fmt.Sprintf("%s/%s/%s", user.URL, honkSep, xid)
 
-	if friendorfoe(r.Header.Get("Accept")) {
+	if fof := friendorfoe(r.Header.Get("Accept")); fof || strings.HasSuffix(r.URL.Path, ".json") {
 		j, ok := gimmejonk(xid)
 		if ok {
-			trackback(xid, r)
+			if fof {
+				trackback(xid, r)
+			}
 			w.Header().Set("Content-Type", theonetruename)
 			w.Write(j)
 		} else {
@@ -1079,7 +1082,7 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 	templinfo := getInfo(r)
 	templinfo["ServerMessage"] = "one honk maybe more"
 	templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
-	templinfo["APAltLink"] = templates.Sprintf("<link href='%s' rel='alternate' type='application/activity+json'>", xid)
+	templinfo["APAltLink"] = templates.Sprintf("<link href='%s.json' rel='alternate' type='application/activity+json'>", xid)
 	honkpage(w, u, honks, templinfo)
 }
 
@@ -2575,6 +2578,7 @@ func serve() {
 	getters.HandleFunc("/rss", showrss)
 	getters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}", showuser)
 	getters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}/"+honkSep+"/{xid:[\\pL[:digit:]]+}", showonehonk)
+	getters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}/"+honkSep+"/{xid:[\\pL[:digit:]]+}.json", showonehonk)
 	getters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}/rss", showrss)
 	posters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}/inbox", inbox)
 	getters.HandleFunc("/"+userSep+"/{name:[\\pL[:digit:]]+}/outbox", outbox)
