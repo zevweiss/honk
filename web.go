@@ -1079,6 +1079,7 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 	templinfo := getInfo(r)
 	templinfo["ServerMessage"] = "one honk maybe more"
 	templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
+	templinfo["APAltLink"] = templates.Sprintf("<link href='%s' rel='alternate' type='application/activity+json'>", xid)
 	honkpage(w, u, honks, templinfo)
 }
 
