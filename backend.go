@@ -17,10 +17,13 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"net"
+	"net/http"
 	"net/rpc"
 	"os"
 	"os/exec"
+	"strings"
 
 	"humungus.tedunangst.com/r/webs/gate"
 	"humungus.tedunangst.com/r/webs/image"
@@ -55,7 +58,32 @@ func backendSockname() string {
 	return dataDir + "/backend.sock"
 }
 
+func isSVG(data []byte) bool {
+	ct := http.DetectContentType(data)
+	if strings.HasPrefix(ct, "text/xml") {
+		return strings.Index(string(data), "<!DOCTYPE svg PUBLIC") != -1
+	}
+	if strings.HasPrefix(ct, "text/plain") {
+		return bytes.HasPrefix(data, []byte("<svg "))
+	}
+	return ct == "image/svg+xml"
+}
+
+func imageFromSVG(data []byte) (*image.Image, error) {
+	if len(data) > 100000 {
+		return nil, errors.New("my svg is too big")
+	}
+	svg := &image.Image{
+		Data:   data,
+		Format: "svg+xml",
+	}
+	return svg, nil
+}
+
 func shrinkit(data []byte) (*image.Image, error) {
+	if isSVG(data) {
+		return imageFromSVG(data)
+	}
 	cl, err := rpc.Dial("unix", backendSockname())
 	if err != nil {
 		return nil, err

@@ -1503,6 +1503,9 @@ func submitdonk(w http.ResponseWriter, r *http.Request) (*Donk, error) {
 		if format == "jpeg" {
 			format = "jpg"
 		}
+		if format == "svg+xml" {
+			format = "svg"
+		}
 		name = xfiltrate() + "." + format
 	} else {
 		ct := http.DetectContentType(data)

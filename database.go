@@ -548,6 +548,8 @@ func savefileandxid(name string, desc string, url string, media string, local bo
 				xid += ".png"
 			case "image/jpeg":
 				xid += ".jpg"
+			case "image/svg+xml":
+				xid += ".svg"
 			case "application/pdf":
 				xid += ".pdf"
 			case "text/plain":
