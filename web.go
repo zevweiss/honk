@@ -2440,6 +2440,16 @@ func apihandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func fiveoh(w http.ResponseWriter, r *http.Request) {
+	fd, err := os.OpenFile("violations.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	if err != nil {
+		elog.Printf("error opening violations! %s", err)
+		return
+	}
+	defer fd.Close()
+	io.Copy(fd, r.Body)
+}
+
 var endoftheworld = make(chan bool)
 var readyalready = make(chan bool)
 var workinprogress = 0
@@ -2593,6 +2603,8 @@ func serve() {
 	getters.HandleFunc("/server", serveractor)
 	posters.HandleFunc("/server/inbox", serverinbox)
 	posters.HandleFunc("/inbox", serverinbox)
+
+	posters.HandleFunc("/csp-violation", fiveoh)
 
 	getters.HandleFunc("/style.css", serveviewasset)
 	getters.HandleFunc("/honkpage.js", serveviewasset)
