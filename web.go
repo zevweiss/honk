@@ -230,8 +230,8 @@ func showrss(w http.ResponseWriter, r *http.Request) {
 			if strings.HasPrefix(d.Media, "image") {
 				desc += string(templates.Sprintf(`<img src="%s">`, d.URL))
 			} else if strings.HasPrefix(d.Media, "video") {
-				s := `<video style="max-width: 100%;height: auto;"><source src="%s" type="video/mp4"></video>`;
-				desc += string(templates.Sprintf(s, d.URL))
+				s := `<video style="max-width: 100%;height: auto;"><source src="%s" type="%s"></video>`;
+				desc += string(templates.Sprintf(s, d.URL, d.Media))
 			}
 		}
 
