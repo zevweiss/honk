@@ -1717,6 +1717,8 @@ func somethingabout(obj junk.Junk) (*SomeThing, error) {
 	switch t {
 	case "Person":
 		fallthrough
+	case "Group":
+		fallthrough
 	case "Organization":
 		fallthrough
 	case "Application":
