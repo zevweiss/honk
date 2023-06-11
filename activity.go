@@ -1737,7 +1737,10 @@ func somethingabout(obj junk.Junk) (*SomeThing, error) {
 	if info.Name == "" {
 		info.Name, _ = obj.GetString("name")
 	}
-	info.Owner, _ = obj.GetString("attributedTo")
+	info.Owner, _ = obj.GetString("owner")
+	if info.Owner == "" {
+		info.Owner, _ = obj.GetString("attributedTo")
+	}
 	if info.Owner == "" {
 		info.Owner = info.XID
 	}
