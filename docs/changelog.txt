@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ improve handling of some Page and Link objects
+
 + search can now load external posts
 
 === 0.9.91 One More Time
