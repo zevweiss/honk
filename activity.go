@@ -689,7 +689,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Audio":
 			fallthrough
 		case "Image":
-			preferorig = true
+			if what == "Image" {
+				preferorig = true
+			}
 			fallthrough
 		case "Video":
 			fallthrough
@@ -837,6 +839,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			procatt := func(att junk.Junk) {
 				at, _ := att.GetString("type")
 				mt, _ := att.GetString("mediaType")
+				if mt == "" {
+					mt = "image"
+				}
 				u, ok := att.GetString("url")
 				if !ok {
 					u, ok = att.GetString("href")
@@ -889,6 +894,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					xonk.Donks = append(xonk.Donks, donk)
 				}
 				numatts++
+			}
+			if img, ok := obj.GetMap("image"); ok {
+				procatt(img)
 			}
 			if preferorig {
 				atts, _ := obj.GetArray("url")
