@@ -882,6 +882,14 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 							localize = true
 						}
 					}
+				} else if at == "Link" {
+					if waspage {
+						xonk.Noise += fmt.Sprintf(`<p><a href="%s">%s</a>`, u, u)
+						return
+					}
+					if name == "" {
+						name = u
+					}
 				} else {
 					ilog.Printf("unknown attachment: %s", at)
 				}
