@@ -613,6 +613,14 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Announce":
 			obj, ok = item.GetMap("object")
 			if ok {
+				what, ok := obj.GetString("type")
+				if ok && what == "Create" {
+					obj, ok = obj.GetMap("object")
+					if !ok {
+						ilog.Printf("lost object inside create %s", id)
+						return nil
+					}
+				}
 				xid, _ = obj.GetString("id")
 			} else {
 				xid, _ = item.GetString("object")
@@ -620,12 +628,16 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			if !needbonkid(user, xid) {
 				return nil
 			}
-			dlog.Printf("getting bonk: %s", xid)
-			obj, err = GetJunkHardMode(user.ID, xid)
-			if err != nil {
-				ilog.Printf("error getting bonk: %s: %s", xid, err)
-			}
 			origin = originate(xid)
+			if ok && originate(id) == origin {
+				dlog.Printf("using object in announce for %s", xid)
+			} else {
+				dlog.Printf("getting bonk: %s", xid)
+				obj, err = GetJunkHardMode(user.ID, xid)
+				if err != nil {
+					ilog.Printf("error getting bonk: %s: %s", xid, err)
+				}
+			}
 			what = "bonk"
 		case "Update":
 			isUpdate = true
