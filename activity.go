@@ -871,14 +871,16 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					desc = name
 				}
 				localize := false
-				if numatts > 4 {
-					ilog.Printf("excessive attachment: %s", at)
-				} else if at == "Document" || at == "Image" || (preferorig && at == "Link") {
+				if at == "Document" || at == "Image" {
 					mt = strings.ToLower(mt)
 					dlog.Printf("attachment: %s %s", mt, u)
 					if mt == "text/plain" || mt == "application/pdf" ||
 						strings.HasPrefix(mt, "image") {
-						localize = true
+						if numatts > 4 {
+							ilog.Printf("excessive attachment: %s", at)
+						} else {
+							localize = true
+						}
 					}
 				} else {
 					ilog.Printf("unknown attachment: %s", at)
