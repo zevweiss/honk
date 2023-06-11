@@ -1714,6 +1714,7 @@ func investigate(name string) (*SomeThing, error) {
 func somethingabout(obj junk.Junk) (*SomeThing, error) {
 	info := new(SomeThing)
 	t, _ := obj.GetString("type")
+	isowned := false
 	switch t {
 	case "Person":
 		fallthrough
@@ -1726,6 +1727,7 @@ func somethingabout(obj junk.Junk) (*SomeThing, error) {
 	case "Service":
 		info.What = SomeActor
 	case "OrderedCollection":
+		isowned = true
 		fallthrough
 	case "Collection":
 		info.What = SomeCollection
@@ -1737,8 +1739,7 @@ func somethingabout(obj junk.Junk) (*SomeThing, error) {
 	if info.Name == "" {
 		info.Name, _ = obj.GetString("name")
 	}
-	info.Owner, _ = obj.GetString("owner")
-	if info.Owner == "" {
+	if isowned {
 		info.Owner, _ = obj.GetString("attributedTo")
 	}
 	if info.Owner == "" {
