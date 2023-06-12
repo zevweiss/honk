@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ Tuned up superdeliverator.
+
 + Import from instagram.
 
 + improve handling of some Page and Link objects
