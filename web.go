@@ -2422,7 +2422,7 @@ func apihandler(w http.ResponseWriter, r *http.Request) {
 		rcpts := boxuprcpts(user, r.Form["rcpt"], public)
 		msg := []byte(r.FormValue("msg"))
 		for rcpt := range rcpts {
-			go deliverate(0, userid, rcpt, msg, true)
+			go deliverate(0, userid, rcpt, msg)
 		}
 	case "gethonkers":
 		j := junk.New()
