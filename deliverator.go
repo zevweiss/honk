@@ -74,7 +74,7 @@ func delinquent(userid int64, rcpt string, msg []byte) bool {
 	row := stmtDeliquentCheck.QueryRow(userid, rcpt)
 	var dooverid int64
 	var data []byte
-	err := row.Scan(&dooverid, data)
+	err := row.Scan(&dooverid, &data)
 	if err == sql.ErrNoRows {
 		return false
 	}
