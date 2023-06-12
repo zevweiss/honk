@@ -1193,6 +1193,6 @@ func prepareStatements(db *sql.DB) {
 	stmtSaveChonk = preparetodie(db, "insert into chonks (userid, xid, who, target, dt, noise, format) values (?, ?, ?, ?, ?, ?, ?)")
 	stmtLoadChonks = preparetodie(db, "select chonkid, userid, xid, who, target, dt, noise, format from chonks where userid = ? and dt > ? order by chonkid asc")
 	stmtGetChatters = preparetodie(db, "select distinct(target) from chonks where userid = ?")
-	stmtDeliquentCheck = preparetodie(db, "select dooverid, msg from doovers where rcpt = ?")
-	stmtDeliquentUpdate = preparetodie(db, "update doovers set data = ? where dooverid = ?")
+	stmtDeliquentCheck = preparetodie(db, "select dooverid, msg from doovers where userid = ? and rcpt = ?")
+	stmtDeliquentUpdate = preparetodie(db, "update doovers set msg = ? where dooverid = ?")
 }

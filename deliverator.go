@@ -68,10 +68,10 @@ func sayitagain(doover Doover) {
 
 var dqmtx sync.Mutex
 
-func delinquent(rcpt string, msg []byte) bool {
+func delinquent(userid int64, rcpt string, msg []byte) bool {
 	dqmtx.Lock()
 	defer dqmtx.Unlock()
-	row := stmtDeliquentCheck.QueryRow(rcpt)
+	row := stmtDeliquentCheck.QueryRow(userid, rcpt)
 	var dooverid int64
 	var data []byte
 	err := row.Scan(&dooverid, data)
@@ -93,7 +93,7 @@ func delinquent(rcpt string, msg []byte) bool {
 }
 
 func deliverate(userid int64, rcpt string, msg []byte) {
-	if delinquent(rcpt, msg) {
+	if delinquent(userid, rcpt, msg) {
 		return
 	}
 	var d Doover
