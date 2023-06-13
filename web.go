@@ -1041,7 +1041,7 @@ func honkology(honk *Honk) template.HTML {
 <meta property="article:author" content="%s" />
 <meta property="og:url" content="%s" />
 <meta property="og:image" content="%s" />
-<meta property="og:description" content = "%s" />`,
+<meta property="og:description" content="%s" />`,
 		title, user.URL, honk.XID, imgurl, short)
 }
 
