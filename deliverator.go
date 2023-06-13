@@ -35,28 +35,22 @@ type Doover struct {
 }
 
 func sayitagain(doover Doover) {
-	rcpt := doover.Rcpt
-	var drift time.Duration
 	doover.Tries += 1
-	switch doover.Tries {
-	case 1:
-		drift = 5 * time.Minute
-	case 2:
-		drift = 1 * time.Hour
-	case 3:
-		drift = 4 * time.Hour
-	case 4:
-		drift = 12 * time.Hour
-	case 5:
-		drift = 24 * time.Hour
-	default:
-		ilog.Printf("he's dead jim: %s", rcpt)
+	var drift time.Duration
+	if doover.Tries <= 3 { // 5, 10, 15 minutes
+		drift = time.Duration(doover.Tries*5) * time.Minute
+	} else if doover.Tries <= 6 { // 1, 2, 3 hours
+		drift = time.Duration(doover.Tries-3) * time.Hour
+	} else if doover.Tries <= 9 { // 12, 12, 12 hours
+		drift = time.Duration(12) * time.Hour
+	} else {
+		ilog.Printf("he's dead jim: %s", doover.Rcpt)
 		return
 	}
 	drift += time.Duration(notrand.Int63n(int64(drift / 10)))
 	when := time.Now().Add(drift)
 	data := bytes.Join(doover.Msgs, []byte{0})
-	_, err := stmtAddDoover.Exec(when.UTC().Format(dbtimeformat), doover.Tries, doover.Userid, rcpt, data)
+	_, err := stmtAddDoover.Exec(when.UTC().Format(dbtimeformat), doover.Tries, doover.Userid, doover.Rcpt, data)
 	if err != nil {
 		elog.Printf("error saving doover: %s", err)
 	}
