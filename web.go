@@ -1019,21 +1019,30 @@ func trackback(xid string, r *http.Request) {
 }
 
 func threadsort(honks []*Honk) []*Honk {
+	honkx := make(map[string]*Honk)
 	kids := make(map[string][]*Honk)
 	for _, h := range honks {
-		kids[h.RID] = append(kids[h.RID], h)
+		honkx[h.XID] = h
+		rid := h.RID
+		kids[rid] = append(kids[rid], h)
 	}
 	done := make(map[*Honk]bool)
 	var thread []*Honk
-	var grabkids func(p *Honk)
+	var nextlevel func(p *Honk)
 	level := 0
-	grabkids = func(p *Honk) {
+	nextlevel = func(p *Honk) {
 		if level > 4 {
 			p.Style += fmt.Sprintf(" level%d", 4)
 		} else {
 			p.Style += fmt.Sprintf(" level%d", level)
 		}
-		level++
+		levelup := true
+		if pp := honkx[p.RID]; pp != nil && p.Honker != pp.Honker {
+			levelup = false
+		}
+		if levelup {
+			level++
+		}
 		childs := kids[p.XID]
 		sort.Slice(childs, func(i, j int) bool {
 			return childs[i].Date.Before(childs[j].Date)
@@ -1041,22 +1050,24 @@ func threadsort(honks []*Honk) []*Honk {
 		for _, h := range childs {
 			done[h] = true
 			thread = append(thread, h)
-			grabkids(h)
+			nextlevel(h)
 		}
-		level--
+		if levelup {
+			level--
+		}
 	}
 	for _, h := range honks {
 		if h.RID == "" {
 			done[h] = true
 			thread = append(thread, h)
-			grabkids(h)
+			nextlevel(h)
 		}
 	}
 	for _, h := range honks {
 		if !done[h] {
 			done[h] = true
 			thread = append(thread, h)
-			grabkids(h)
+			nextlevel(h)
 		}
 	}
 	return thread
