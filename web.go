@@ -1034,17 +1034,19 @@ func threadsort(honks []*Honk) []*Honk {
 	var nextlevel func(p *Honk)
 	level := 0
 	nextlevel = func(p *Honk) {
+		levelup := true
+		if pp := honkx[p.RID]; pp != nil && p.Honker == pp.Honker {
+			levelup = false
+		} else {
+			ilog.Printf("levelup %s", p.XID)
+		}
+		if levelup {
+			level++
+		}
 		if level > 4 {
 			p.Style += fmt.Sprintf(" level%d", 4)
 		} else {
 			p.Style += fmt.Sprintf(" level%d", level)
-		}
-		levelup := true
-		if pp := honkx[p.RID]; pp != nil && p.Honker == pp.Honker {
-			levelup = false
-		}
-		if levelup {
-			level++
 		}
 		childs := kids[p.XID]
 		sort.Slice(childs, func(i, j int) bool {
