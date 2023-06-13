@@ -1023,6 +1023,9 @@ func threadsort(honks []*Honk) []*Honk {
 	kids := make(map[string][]*Honk)
 	for _, h := range honks {
 		honkx[h.XID] = h
+		if h.RID == "" {
+			honkx[""] = h
+		}
 		rid := h.RID
 		kids[rid] = append(kids[rid], h)
 	}
@@ -1037,7 +1040,7 @@ func threadsort(honks []*Honk) []*Honk {
 			p.Style += fmt.Sprintf(" level%d", level)
 		}
 		levelup := true
-		if pp := honkx[p.RID]; pp == nil || p.Honker == pp.Honker {
+		if pp := honkx[p.RID]; pp != nil && p.Honker == pp.Honker {
 			levelup = false
 		}
 		if levelup {
