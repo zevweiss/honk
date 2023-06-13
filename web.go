@@ -1017,6 +1017,34 @@ func trackback(xid string, r *http.Request) {
 	}
 }
 
+func honkology(honk *Honk) template.HTML {
+	var user *WhatAbout
+	ok := somenumberedusers.Get(honk.UserID, &user)
+	if !ok {
+		return ""
+	}
+	title := fmt.Sprintf("%s: %s", user.Display, honk.Precis)
+	imgurl := avatarURL(user)
+	for _, d := range honk.Donks {
+		if d.Local && strings.HasPrefix(d.Media, "image") {
+			imgurl = d.URL
+			break
+		}
+	}
+	short := honk.Noise
+	if len(short) > 160 {
+		short = short[0:160] + "..."
+	}
+	return templates.Sprintf(
+		`<meta property="og:title" content="%s" />
+<meta property="og:type" content="article" />
+<meta property="article:author" content="%s" />
+<meta property="og:url" content="%s" />
+<meta property="og:image" content="%s" />
+<meta property="og:description" content = "%s" />`,
+		title, user.URL, honk.XID, imgurl, short)
+}
+
 func showonehonk(w http.ResponseWriter, r *http.Request) {
 	name := mux.Vars(r)["name"]
 	user, err := butwhatabout(name)
@@ -1064,19 +1092,23 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 		honkpage(w, u, honks, templinfo)
 		return
 	}
+
+	templinfo := getInfo(r)
 	rawhonks := gethonksbyconvoy(honk.UserID, honk.Convoy, 0)
 	reversehonks(rawhonks)
 	var honks []*Honk
 	for _, h := range rawhonks {
-		if h.XID == xid && len(honks) != 0 {
-			h.Style += " glow"
+		if h.XID == xid {
+			templinfo["Honkology"] = honkology(h)
+			if len(honks) != 0 {
+				h.Style += " glow"
+			}
 		}
 		if h.Public && (h.Whofore == 2 || h.IsAcked()) {
 			honks = append(honks, h)
 		}
 	}
 
-	templinfo := getInfo(r)
 	templinfo["ServerMessage"] = "one honk maybe more"
 	templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
 	templinfo["APAltLink"] = templates.Sprintf("<link href='%s' rel='alternate' type='application/activity+json'>", xid)
