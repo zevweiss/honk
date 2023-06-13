@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"database/sql"
 	notrand "math/rand"
+	"strings"
 	"sync"
 	"time"
 
@@ -58,6 +59,14 @@ func sayitagain(doover Doover) {
 	case pokechan <- 0:
 	default:
 	}
+}
+
+func lethaldose(err error) int64 {
+	str := err.Error()
+	if strings.Contains(str, "no such host") {
+		return 8
+	}
+	return 0
 }
 
 var dqmtx sync.Mutex
@@ -132,6 +141,9 @@ func deliveration(doover Doover) {
 		err := PostMsg(ki.keyname, ki.seckey, inbox, msg)
 		if err != nil {
 			ilog.Printf("failed to post json to %s: %s", inbox, err)
+			if t := lethaldose(err); t > doover.Tries {
+				doover.Tries = t
+			}
 			doover.Msgs = doover.Msgs[i:]
 			sayitagain(doover)
 			return
