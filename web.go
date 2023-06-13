@@ -1037,7 +1037,7 @@ func threadsort(honks []*Honk) []*Honk {
 			p.Style += fmt.Sprintf(" level%d", level)
 		}
 		levelup := true
-		if pp := honkx[p.RID]; pp != nil && p.Honker != pp.Honker {
+		if pp := honkx[p.RID]; pp == nil || p.Honker == pp.Honker {
 			levelup = false
 		}
 		if levelup {
