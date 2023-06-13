@@ -779,7 +779,8 @@ func showconvoy(w http.ResponseWriter, r *http.Request) {
 		templinfo["TopHID"] = honks[0].ID
 	}
 	honks = osmosis(honks, u.UserID, false)
-	reversehonks(honks)
+	//reversehonks(honks)
+	honks = threadsort(honks)
 	templinfo["PageName"] = "convoy"
 	templinfo["PageArg"] = c
 	templinfo["ServerMessage"] = "honks in convoy: " + c
@@ -1017,6 +1018,50 @@ func trackback(xid string, r *http.Request) {
 	}
 }
 
+func threadsort(honks []*Honk) []*Honk {
+	kids := make(map[string][]*Honk)
+	for _, h := range honks {
+		kids[h.RID] = append(kids[h.RID], h)
+	}
+	done := make(map[*Honk]bool)
+	var thread []*Honk
+	var grabkids func(p *Honk)
+	level := 0
+	grabkids = func(p *Honk) {
+		if level > 4 {
+			p.Style += fmt.Sprintf(" level%d", 4)
+		} else {
+			p.Style += fmt.Sprintf(" level%d", level)
+		}
+		level++
+		childs := kids[p.XID]
+		sort.Slice(childs, func(i, j int) bool {
+			return childs[i].Date.Before(childs[j].Date)
+		})
+		for _, h := range childs {
+			done[h] = true
+			thread = append(thread, h)
+			grabkids(h)
+		}
+		level--
+	}
+	for _, h := range honks {
+		if h.RID == "" {
+			done[h] = true
+			thread = append(thread, h)
+			grabkids(h)
+		}
+	}
+	for _, h := range honks {
+		if !done[h] {
+			done[h] = true
+			thread = append(thread, h)
+			grabkids(h)
+		}
+	}
+	return thread
+}
+
 func honkology(honk *Honk) template.HTML {
 	var user *WhatAbout
 	ok := somenumberedusers.Get(honk.UserID, &user)
@@ -1095,7 +1140,8 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 
 	templinfo := getInfo(r)
 	rawhonks := gethonksbyconvoy(honk.UserID, honk.Convoy, 0)
-	reversehonks(rawhonks)
+	//reversehonks(rawhonks)
+	rawhonks = threadsort(rawhonks)
 	var honks []*Honk
 	for _, h := range rawhonks {
 		if h.XID == xid {
@@ -2327,6 +2373,8 @@ func webhydra(w http.ResponseWriter, r *http.Request) {
 		c := r.FormValue("c")
 		honks = gethonksbyconvoy(userid, c, wanted)
 		honks = osmosis(honks, userid, false)
+		honks = threadsort(honks)
+		reversehonks(honks)
 		hydra.Srvmsg = templates.Sprintf("honks in convoy: %s", c)
 	case "honker":
 		xid := r.FormValue("xid")
