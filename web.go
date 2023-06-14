@@ -1043,6 +1043,9 @@ func threadsort(honks []*Honk) []*Honk {
 		}
 		p.Style += fmt.Sprintf(" level%d", level)
 		childs := kids[p.XID]
+		sort.SliceStable(childs, func(i, j int) bool {
+			return childs[i].Honker == p.Honker && childs[j].Honker != p.Honker
+		})
 		for _, h := range childs {
 			done[h] = true
 			thread = append(thread, h)
