@@ -1038,6 +1038,11 @@ func threadsort(honks []*Honk) []*Honk {
 		if pp := honkx[p.RID]; p.RID == "" || (pp != nil && p.Honker == pp.Honker) {
 			levelup = false
 		}
+		if level > 0 && len(kids[p.RID]) == 1 {
+			if pp := honkx[p.RID]; pp != nil && len(kids[pp.RID]) == 1 {
+				levelup = false
+			}
+		}
 		if levelup {
 			level++
 		}
