@@ -154,6 +154,10 @@ The
 command exists to purge old external data, by default 30 days.
 This removes unreferenced, unsaved posts and attachments.
 It does not remove any original content.
+This will not immediately reduce the size of the database, but frees space
+for future use.
+A vacuum may be performed manually if necessary, but will require more time
+and additional disk space.
 .Pp
 Backups may be performed by running
 .Ic backup dirname .
