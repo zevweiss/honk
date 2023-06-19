@@ -2171,15 +2171,10 @@ func dochpass(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/account", http.StatusSeeOther)
 }
 
-func fingerlicker(w http.ResponseWriter, r *http.Request) {
-	orig := r.FormValue("resource")
-
-	dlog.Printf("finger lick: %s", orig)
-
+var oldfingers = cache.New(cache.Options{Filler: func(orig string) ([]byte, bool) {
 	if strings.HasPrefix(orig, "acct:") {
 		orig = orig[5:]
 	}
-
 	name := orig
 	idx := strings.LastIndexByte(name, '/')
 	if idx != -1 {
@@ -2200,12 +2195,7 @@ func fingerlicker(w http.ResponseWriter, r *http.Request) {
 	}
 	user, err := butwhatabout(name)
 	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-	if stealthmode(user.ID, r) {
-		http.NotFound(w, r)
-		return
+		return nil, false
 	}
 
 	j := junk.New()
@@ -2216,9 +2206,22 @@ func fingerlicker(w http.ResponseWriter, r *http.Request) {
 	l["type"] = `application/activity+json`
 	l["href"] = user.URL
 	j["links"] = []junk.Junk{l}
+	return j.ToBytes(), true
+}})
 
-	w.Header().Set("Content-Type", "application/jrd+json")
-	j.Write(w)
+func fingerlicker(w http.ResponseWriter, r *http.Request) {
+	orig := r.FormValue("resource")
+
+	dlog.Printf("finger lick: %s", orig)
+
+	var j []byte
+	ok := oldfingers.Get(orig, &j)
+	if ok {
+		w.Header().Set("Content-Type", "application/jrd+json")
+		w.Write(j)
+	} else {
+		http.NotFound(w, r)
+	}
 }
 
 func somedays() string {
