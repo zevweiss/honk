@@ -1052,16 +1052,18 @@ func threadsort(honks []*Honk) []*Honk {
 			return childs[i].Honker == p.Honker && childs[j].Honker != p.Honker
 		})
 		for _, h := range childs {
-			done[h] = true
-			thread = append(thread, h)
-			nextlevel(h)
+			if !done[h] {
+				done[h] = true
+				thread = append(thread, h)
+				nextlevel(h)
+			}
 		}
 		if levelup {
 			level--
 		}
 	}
 	for _, h := range honks {
-		if h.RID == "" {
+		if !done[h] && h.RID == "" {
 			done[h] = true
 			thread = append(thread, h)
 			nextlevel(h)
