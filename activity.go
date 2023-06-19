@@ -1628,7 +1628,7 @@ var oldjonkers = cache.New(cache.Options{Filler: func(name string) ([]byte, bool
 		return nil, false
 	}
 	j := junkuser(user)
-	return buf.ToBytes(), true
+	return j.ToBytes(), true
 }, Duration: 1 * time.Minute})
 
 func asjonker(name string) ([]byte, bool) {
