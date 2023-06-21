@@ -2548,6 +2548,7 @@ func fiveoh(w http.ResponseWriter, r *http.Request) {
 	}
 	defer fd.Close()
 	io.Copy(fd, r.Body)
+	fd.WriteString("\n")
 }
 
 var endoftheworld = make(chan bool)
