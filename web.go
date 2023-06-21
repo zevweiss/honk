@@ -1018,6 +1018,17 @@ func trackback(xid string, r *http.Request) {
 	}
 }
 
+func sameperson(h1, h2 *Honk) bool {
+	n1, n2 := h1.Honker, h2.Honker
+	if h1.Oonker != "" {
+		n1 = h1.Oonker
+	}
+	if h2.Oonker != "" {
+		n2 = h2.Oonker
+	}
+	return n1 == n2
+}
+
 func threadsort(honks []*Honk) []*Honk {
 	sort.Slice(honks, func(i, j int) bool {
 		return honks[i].Date.Before(honks[j].Date)
@@ -1035,7 +1046,7 @@ func threadsort(honks []*Honk) []*Honk {
 	level := 0
 	nextlevel = func(p *Honk) {
 		levelup := level < 4
-		if pp := honkx[p.RID]; p.RID == "" || (pp != nil && p.Honker == pp.Honker) {
+		if pp := honkx[p.RID]; p.RID == "" || (pp != nil && sameperson(p, pp)) {
 			levelup = false
 		}
 		if level > 0 && len(kids[p.RID]) == 1 {
@@ -1049,7 +1060,7 @@ func threadsort(honks []*Honk) []*Honk {
 		p.Style += fmt.Sprintf(" level%d", level)
 		childs := kids[p.XID]
 		sort.SliceStable(childs, func(i, j int) bool {
-			return childs[i].Honker == p.Honker && childs[j].Honker != p.Honker
+			return sameperson(childs[i], p) && !sameperson(childs[j], p)
 		})
 		for _, h := range childs {
 			if !done[h] {
