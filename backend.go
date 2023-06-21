@@ -23,7 +23,10 @@ import (
 	"net/rpc"
 	"os"
 	"os/exec"
+	"os/signal"
 	"strings"
+	"sync"
+	"syscall"
 
 	"humungus.tedunangst.com/r/webs/gate"
 	"humungus.tedunangst.com/r/webs/image"
@@ -112,6 +115,7 @@ func orphancheck() {
 func backendServer() {
 	dlog.Printf("backend server running")
 	go orphancheck()
+	signal.Ignore(syscall.SIGINT)
 	shrinker := new(Shrinker)
 	srv := rpc.NewServer()
 	err := srv.Register(shrinker)
@@ -152,9 +156,23 @@ func runBackendServer() {
 	if err != nil {
 		elog.Panicf("can't exec backend: %s", err)
 	}
+	workinprogress++
+	var mtx sync.Mutex
+	go func() {
+		<-endoftheworld
+		mtx.Lock()
+		defer mtx.Unlock()
+		w.Close()
+		w = nil
+		readyalready <- true
+	}()
 	go func() {
 		proc.Wait()
-		elog.Printf("lost the backend: %s", err)
-		w.Close()
+		mtx.Lock()
+		defer mtx.Unlock()
+		if w != nil {
+			elog.Printf("lost the backend: %s", err)
+			w.Close()
+		}
 	}()
 }
