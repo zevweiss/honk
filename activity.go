@@ -165,7 +165,11 @@ func junkGet(userid int64, url string, args junk.GetArgs) (junk.Junk, error) {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != 200 {
+	switch resp.StatusCode {
+	case 200:
+	case 201:
+	case 202:
+	default:
 		return nil, fmt.Errorf("http get status: %d", resp.StatusCode)
 	}
 	return junk.Read(resp.Body)
