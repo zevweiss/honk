@@ -211,7 +211,8 @@ func replaceimgsand(zap map[string]bool, absolute bool) func(node *html.Node) st
 func translatechonk(ch *Chonk) {
 	noise := ch.Noise
 	if ch.Format == "markdown" {
-		noise = markitzero(noise)
+		var marker mz.Marker
+		noise = marker.Mark(noise)
 	}
 	var htf htfilter.Filter
 	htf.SpanClasses = allowedclasses
@@ -300,7 +301,8 @@ func precipitate(honk *Honk) {
 			honk.Precis = noise[:idx]
 			noise = noise[idx+1:]
 		}
-		honk.Precis = markitzero(strings.TrimSpace(honk.Precis))
+		var marker mz.Marker
+		honk.Precis = marker.Mark(strings.TrimSpace(honk.Precis))
 		honk.Noise = noise
 	}
 }
