@@ -549,7 +549,7 @@ func attoreplacer(m string) string {
 }
 
 func ontoreplacer(h string) string {
-	return fmt.Sprintf(`<a href="https://%s/o/%s">%s</a>`, serverName,
+	return fmt.Sprintf(`<a class="mention hashtag" href="https://%s/o/%s">%s</a>`, serverName,
 		strings.ToLower(h[1:]), h)
 }
 
