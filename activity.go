@@ -511,35 +511,12 @@ func firstofmany(obj junk.Junk, key string) string {
 }
 
 var re_mast0link = regexp.MustCompile(`https://[[:alnum:].]+/users/[[:alnum:]]+/statuses/[[:digit:]]+`)
-var re_masto1ink = regexp.MustCompile(`https://[[:alnum:].]+/@[[:alnum:]]+/[[:digit:]]+`)
+var re_masto1ink = regexp.MustCompile(`https://([[:alnum:].]+)/@([[:alnum:]]+)/([[:digit:]]+)`)
 var re_misslink = regexp.MustCompile(`https://[[:alnum:].]+/notes/[[:alnum:]]+`)
 var re_honklink = regexp.MustCompile(`https://[[:alnum:].]+/u/[[:alnum:]]+/h/[[:alnum:]]+`)
 var re_r0malink = regexp.MustCompile(`https://[[:alnum:].]+/objects/[[:alnum:]-]+`)
 var re_roma1ink = regexp.MustCompile(`https://[[:alnum:].]+/notice/[[:alnum:]]+`)
 var re_qtlinks = regexp.MustCompile(`>https://[^\s<]+<`)
-
-func qutify(user *WhatAbout, content string) string {
-	// well this is gross
-	malcontent := strings.ReplaceAll(content, `</span><span class="ellipsis">`, "")
-	malcontent = strings.ReplaceAll(malcontent, `</span><span class="invisible">`, "")
-	mlinks := re_qtlinks.FindAllString(malcontent, -1)
-	for _, m := range mlinks {
-		m = m[1 : len(m)-1]
-		if re_mast0link.MatchString(m) || re_masto1ink.MatchString(m) ||
-			re_misslink.MatchString(m) ||
-			re_honklink.MatchString(m) ||
-			re_r0malink.MatchString(m) || re_roma1ink.MatchString(m) {
-			j, err := GetJunk(user.ID, m)
-			if err == nil {
-				q, ok := j.GetString("content")
-				if ok {
-					content = fmt.Sprintf("%s<blockquote>%s</blockquote>", content, q)
-				}
-			}
-		}
-	}
-	return content
-}
 
 func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 	depth := 0
@@ -547,6 +524,44 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 	currenttid := ""
 	goingup := 0
 	var xonkxonkfn func(item junk.Junk, origin string, isUpdate bool) *Honk
+
+	qutify := func(user *WhatAbout, content string) string {
+		if depth >= maxdepth {
+			ilog.Printf("in too deep")
+			return content
+		}
+		// well this is gross
+		malcontent := strings.ReplaceAll(content, `</span><span class="ellipsis">`, "")
+		malcontent = strings.ReplaceAll(malcontent, `</span><span class="invisible">`, "")
+		mlinks := re_qtlinks.FindAllString(malcontent, -1)
+		for _, m := range mlinks {
+			tryit := false
+			m = m[1 : len(m)-1]
+			if re_mast0link.MatchString(m) || re_misslink.MatchString(m) ||
+				re_honklink.MatchString(m) || re_r0malink.MatchString(m) ||
+				re_roma1ink.MatchString(m) {
+				tryit = true
+			} else if re_masto1ink.MatchString(m) {
+				m = re_masto1ink.ReplaceAllString(m, "https://$1/users/$2/statuses/$3")
+				tryit = true
+			}
+			if tryit {
+				if x := getxonk(user.ID, m); x != nil {
+					content = fmt.Sprintf("%s<blockquote>%s</blockquote>", content, x.Noise)
+				} else if j, err := GetJunk(user.ID, m); err == nil {
+					q, ok := j.GetString("content")
+					if ok {
+						content = fmt.Sprintf("%s<blockquote>%s</blockquote>", content, q)
+					}
+					prevdepth := depth
+					depth = maxdepth
+					xonkxonkfn(j, originate(m), false)
+					depth = prevdepth
+				}
+			}
+		}
+		return content
+	}
 
 	saveonemore := func(xid string) {
 		dlog.Printf("getting onemore: %s", xid)
