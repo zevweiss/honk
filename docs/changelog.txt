@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ New threaded display order.
+
 + Improved search.
 
 + Tuned up superdeliverator.
