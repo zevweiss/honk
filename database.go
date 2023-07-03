@@ -303,6 +303,26 @@ func gethonksbysearch(userid int64, q string, wanted int64) []*Honk {
 		if t == "" {
 			continue
 		}
+		if t == "@me" {
+			queries = append(queries, "whofore = 1")
+			continue
+		}
+		if t == "@self" {
+			queries = append(queries, "(whofore = 2 or whofore = 3)")
+			continue
+		}
+		if strings.HasPrefix(t, "before:") {
+			before := t[7:]
+			queries = append(queries, "dt < ?")
+			params = append(params, before)
+			continue
+		}
+		if strings.HasPrefix(t, "after:") {
+			after := t[6:]
+			queries = append(queries, "dt > ?")
+			params = append(params, after)
+			continue
+		}
 		if strings.HasPrefix(t, "site:") {
 			site := t[5:]
 			site = "%" + site + "%"

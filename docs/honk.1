@@ -143,10 +143,18 @@ section of the manual for details of honk composition.
 Find old honks.
 It's basic substring match with a few extensions.
 The following keywords are supported:
-.Bl -tag -width honker
-.It site
+.Bl -tag -width honker:
+.It @me
+Honks mentioning the user.
+.It @self
+Honks by the user.
+.It before:
+Honks posted before YYYY-MM-DD.
+.It after:
+As above.
+.It site:
 Substring match on the post domain name.
-.It honker
+.It honker:
 Exact match, either AP actor or honker nickname.
 .It -
 Negate term.
