@@ -18,8 +18,6 @@ package main
 import (
 	"database/sql"
 	"os"
-	"strings"
-	"time"
 )
 
 var myVersion = 42
