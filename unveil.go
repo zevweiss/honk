@@ -37,7 +37,7 @@ func Unveil(path string, perms string) {
 
 	rv, err := C.unveil(cpath, cperms)
 	if rv != 0 {
-		return elog.Fatalf("unveil(%s, %s) failure (%d)", path, perms, err)
+		elog.Fatalf("unveil(%s, %s) failure (%d)", path, perms, err)
 	}
 }
 
