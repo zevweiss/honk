@@ -155,7 +155,6 @@ const (
 	flagIsSaved    = 4
 	flagIsUntagged = 8
 	flagIsReacted  = 16
-	flagIsWonked   = 32
 )
 
 func (honk *Honk) IsAcked() bool {

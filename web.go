@@ -1708,9 +1708,6 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 	} else {
 		xid := fmt.Sprintf("%s/%s/%s", user.URL, honkSep, xfiltrate())
 		what := "honk"
-		if rid != "" {
-			what = "tonk"
-		}
 		honk = &Honk{
 			UserID:   userinfo.UserID,
 			Username: userinfo.Username,

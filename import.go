@@ -148,9 +148,6 @@ func importMastotoots(user *WhatAbout, source string) {
 			Format:   "html",
 			Precis:   toot.Object.Summary,
 		}
-		if honk.RID != "" {
-			honk.What = "tonk"
-		}
 		if !loudandproud(honk.Audience) {
 			honk.Whofore = 3
 		}
@@ -387,13 +384,11 @@ func importTwitter(username, source string) {
 		noise := ""
 		if parent := tweetmap[t.Tweet.InReplyToStatusID]; parent != nil {
 			t.convoy = parent.convoy
-			what = "tonk"
 		} else {
 			t.convoy = "data:,acoustichonkytonk-" + t.Tweet.IdStr
 			if t.Tweet.InReplyToScreenName != "" {
 				noise = fmt.Sprintf("re: https://twitter.com/%s/status/%s\n\n",
 					t.Tweet.InReplyToScreenName, t.Tweet.InReplyToStatusID)
-				what = "tonk"
 			}
 		}
 		audience := []string{thewholeworld}

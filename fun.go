@@ -66,7 +66,7 @@ func reverbolate(userid int64, honks []*Honk) {
 	somenumberedusers.Get(userid, &user)
 	for _, h := range honks {
 		h.What += "ed"
-		if h.What == "tonked" {
+		if h.What == "honked" && h.RID != "" {
 			h.What = "honked back"
 			h.Style += " subtle"
 		}

@@ -850,9 +850,6 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				targ, _ := obj.GetString("target")
 				content += string(templates.Sprintf(`<p>Moved to <a href="%s">%s</a>`, targ, targ))
 			}
-			if what == "honk" && rid != "" {
-				what = "tonk"
-			}
 			if len(content) > 90001 {
 				ilog.Printf("content too long. truncating")
 				content = content[:90001]
@@ -1238,8 +1235,6 @@ func jonkjonk(user *WhatAbout, h *Honk) (junk.Junk, junk.Junk) {
 
 	switch h.What {
 	case "update":
-		fallthrough
-	case "tonk":
 		fallthrough
 	case "event":
 		fallthrough
