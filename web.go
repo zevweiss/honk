@@ -723,14 +723,19 @@ func showuser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	u := login.GetUserInfo(r)
-	honks := gethonksbyuser(name, u != nil && u.Username == name, 0)
+	if u != nil && u.Username != name {
+		u = nil
+	}
+	honks := gethonksbyuser(name, u != nil, 0)
 	templinfo := getInfo(r)
 	templinfo["PageName"] = "user"
 	templinfo["PageArg"] = name
 	templinfo["Name"] = user.Name
 	templinfo["WhatAbout"] = user.HTAbout
 	templinfo["ServerMessage"] = ""
-	templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
+	if u != nil {
+		templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
+	}
 	honkpage(w, u, honks, templinfo)
 }
 
@@ -1184,7 +1189,9 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 	}
 
 	templinfo["ServerMessage"] = "one honk maybe more"
-	templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
+	if u != nil {
+		templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
+	}
 	templinfo["APAltLink"] = templates.Sprintf("<link href='%s' rel='alternate' type='application/activity+json'>", xid)
 	honkpage(w, u, honks, templinfo)
 }
