@@ -638,6 +638,10 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 						ilog.Printf("lost object inside create %s", id)
 						return nil
 					}
+					what, _ = obj.GetString("type")
+				}
+				if what == "Page" {
+					waspage = true
 				}
 				xid, _ = obj.GetString("id")
 			} else {
