@@ -330,10 +330,8 @@ img, video {
 	display: block;
 }
 img.emu {
-	width: 2em;
 	height: 2em;
 	vertical-align: middle;
-	margin: -2px;
 	object-fit: contain;
 }
 .nophone {
