@@ -1801,20 +1801,22 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 			donkxid = fmt.Sprintf("%s:%d", d.XID, d.FileID)
 		}
 	} else {
-		p := strings.Split(donkxid, ":")
-		xid := p[0]
-		url := fmt.Sprintf("https://%s/d/%s", serverName, xid)
-		var donk *Donk
-		if len(p) > 1 {
-			fileid, _ := strconv.ParseInt(p[1], 10, 0)
-			donk = finddonkid(fileid, url)
-		} else {
-			donk = finddonk(url)
-		}
-		if donk != nil {
-			honk.Donks = append(honk.Donks, donk)
-		} else {
-			ilog.Printf("can't find file: %s", xid)
+		for _, xid := range r.Form["donkxid"] {
+			p := strings.Split(xid, ":")
+			xid = p[0]
+			url := fmt.Sprintf("https://%s/d/%s", serverName, xid)
+			var donk *Donk
+			if len(p) > 1 {
+				fileid, _ := strconv.ParseInt(p[1], 10, 0)
+				donk = finddonkid(fileid, url)
+			} else {
+				donk = finddonk(url)
+			}
+			if donk != nil {
+				honk.Donks = append(honk.Donks, donk)
+			} else {
+				ilog.Printf("can't find file: %s", xid)
+			}
 		}
 	}
 	memetize(honk)
@@ -2490,7 +2492,8 @@ func apihandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "missing donk", http.StatusBadRequest)
 			return
 		}
-		w.Write([]byte(d.XID))
+		donkxid := fmt.Sprintf("%s:%d", d.XID, d.FileID)
+		w.Write([]byte(donkxid))
 	case "zonkit":
 		zonkit(w, r)
 	case "gethonks":
