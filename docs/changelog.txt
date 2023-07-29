@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ ::: spoiler markdown
+
 + New threaded display order.
 
 + Improved search.
