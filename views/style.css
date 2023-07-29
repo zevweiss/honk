@@ -309,7 +309,7 @@ input[type=file] {
 .limited	details.actions summary {
 		color: var(--fg-limited);
 	}
-details.noise[open] summary {
+details.noise[open] summary.noise {
 	display: none;
 }
 h1, h2 {
