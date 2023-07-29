@@ -967,12 +967,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					procatt(att)
 				}
 			}
-			tags, _ := obj.GetArray("tag")
-			for _, tagi := range tags {
-				tag, ok := tagi.(junk.Junk)
-				if !ok {
-					continue
-				}
+			proctag := func(tag junk.Junk) {
 				tt, _ := tag.GetString("type")
 				name, _ := tag.GetString("name")
 				desc, _ := tag.GetString("summary")
@@ -1016,6 +1011,18 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					m.Where, _ = tag.GetString("href")
 					mentions = append(mentions, m)
 				}
+			}
+			tags, _ := obj.GetArray("tag")
+			for _, tagi := range tags {
+				tag, ok := tagi.(junk.Junk)
+				if !ok {
+					continue
+				}
+				proctag(tag)
+			}
+			tag, ok := obj.GetMap("tag")
+			if ok {
+				proctag(tag)
 			}
 			if starttime, ok := obj.GetString("startTime"); ok {
 				if start, err := time.Parse(time.RFC3339, starttime); err == nil {
