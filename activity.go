@@ -631,12 +631,16 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		case "Announce":
 			obj, ok = item.GetMap("object")
 			if ok {
+				// at some point we should just recurse
 				what, ok := obj.GetString("type")
-				if ok && what == "Create" {
+				if ok && (what == "Create" || what == "Update") {
 					obj, ok = obj.GetMap("object")
 					if !ok {
-						ilog.Printf("lost object inside create %s", id)
+						ilog.Printf("lost object inside announce %s", id)
 						return nil
+					}
+					if what == "Update" {
+						isUpdate = true
 					}
 					what, _ = obj.GetString("type")
 				}
