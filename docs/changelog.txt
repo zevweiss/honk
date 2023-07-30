@@ -2,6 +2,8 @@ changelog
 
 === next
 
++ Mention links locally.
+
 + ::: spoiler markdown
 
 + New threaded display order.

@@ -159,6 +159,16 @@ func reverbolate(userid int64, honks []*Honk) {
 				data = re_emus.ReplaceAllStringFunc(data, emuxifier)
 				io.WriteString(w, data)
 			}
+			if user != nil {
+				htf.RetargetLink = func(href string) string {
+					for _, m := range h.Mentions {
+						if href == m.Where {
+							return "/h?xid=" + url.QueryEscape(href)
+						}
+					}
+					return href
+				}
+			}
 			p, _ := htf.String(h.Precis)
 			n, _ := htf.String(h.Noise)
 			h.Precis = string(p)
