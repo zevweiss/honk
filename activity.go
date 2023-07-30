@@ -468,19 +468,12 @@ func newphone(a []string, obj junk.Junk) []string {
 }
 
 func extractattrto(obj junk.Junk) string {
-	who, _ := obj.GetString("attributedTo")
-	if who != "" {
-		return who
-	}
-	o, ok := obj.GetMap("attributedTo")
-	if ok {
-		id, ok := o.GetString("id")
-		if ok {
-			return id
-		}
-	}
-	arr, _ := obj.GetArray("attributedTo")
+	arr := oneforall(obj, "attributedTo")
 	for _, a := range arr {
+		s, ok := a.(string)
+		if ok {
+			return s
+		}
 		o, ok := a.(junk.Junk)
 		if ok {
 			t, _ := o.GetString("type")
@@ -489,12 +482,19 @@ func extractattrto(obj junk.Junk) string {
 				return id
 			}
 		}
-		s, ok := a.(string)
-		if ok {
-			return s
-		}
 	}
 	return ""
+}
+
+func oneforall(obj junk.Junk, key string) []interface{} {
+	if val, ok := obj.GetMap(key); ok {
+		return []interface{}{val}
+	}
+	if str, ok := obj.GetString(key); ok {
+		return []interface{}{str}
+	}
+	arr, _ := obj.GetArray(key)
+	return arr
 }
 
 func firstofmany(obj junk.Junk, key string) string {
@@ -958,16 +958,13 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				}
 			}
 			if !preferorig {
-				atts, _ := obj.GetArray("attachment")
+				atts := oneforall(obj, "attachment")
 				for _, atti := range atts {
 					att, ok := atti.(junk.Junk)
 					if !ok {
 						ilog.Printf("attachment that wasn't map?")
 						continue
 					}
-					procatt(att)
-				}
-				if att, ok := obj.GetMap("attachment"); ok {
 					procatt(att)
 				}
 			}
@@ -1016,16 +1013,12 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					mentions = append(mentions, m)
 				}
 			}
-			tags, _ := obj.GetArray("tag")
+			tags := oneforall(obj, "tag")
 			for _, tagi := range tags {
 				tag, ok := tagi.(junk.Junk)
 				if !ok {
 					continue
 				}
-				proctag(tag)
-			}
-			tag, ok := obj.GetMap("tag")
-			if ok {
 				proctag(tag)
 			}
 			if starttime, ok := obj.GetString("startTime"); ok {
