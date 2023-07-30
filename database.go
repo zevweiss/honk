@@ -342,7 +342,8 @@ func gethonksbysearch(userid int64, q string, wanted int64) []*Honk {
 			continue
 		}
 		t = "%" + t + "%"
-		queries = append(queries, "noise"+negate+"like ?")
+		queries = append(queries, negate+"(noise like ? or precis like ?)")
+		params = append(params, t)
 		params = append(params, t)
 	}
 
