@@ -132,64 +132,31 @@ var flightdeck = gate.NewSerializer()
 
 var signGets = true
 
-func junkGet(userid int64, url string, args junk.GetArgs) (junk.Junk, error) {
+func GetJunkTimeout(userid int64, url string, timeout time.Duration) (junk.Junk, error) {
 	client := http.DefaultClient
-	if args.Client != nil {
-		client = args.Client
-	}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, err
-	}
-	if args.Accept != "" {
-		req.Header.Set("Accept", args.Accept)
-	}
-	if args.Agent != "" {
-		req.Header.Set("User-Agent", args.Agent)
-	}
-	if signGets {
+	sign := func(req *http.Request) error {
 		var ki *KeyInfo
 		ok := ziggies.Get(userid, &ki)
 		if ok {
 			httpsig.SignRequest(ki.keyname, ki.seckey, req, nil)
 		}
+		return nil
 	}
-	if args.Timeout != 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), args.Timeout)
-		defer cancel()
-		req = req.WithContext(ctx)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	switch resp.StatusCode {
-	case 200:
-	case 201:
-	case 202:
-	default:
-		return nil, fmt.Errorf("http get status: %d", resp.StatusCode)
-	}
-	return junk.Read(resp.Body)
-}
-
-func GetJunkTimeout(userid int64, url string, timeout time.Duration) (junk.Junk, error) {
-	client := http.DefaultClient
 	if develMode {
 		client = develClient
+		sign = nil
 	}
 	fn := func() (interface{}, error) {
 		at := thefakename
 		if strings.Contains(url, ".well-known/webfinger?resource") {
 			at = "application/jrd+json"
 		}
-		j, err := junkGet(userid, url, junk.GetArgs{
+		j, err := junk.Get(url, junk.GetArgs{
 			Accept:  at,
 			Agent:   "honksnonk/5.0; " + serverName,
 			Timeout: timeout,
 			Client:  client,
+			Fixup:   sign,
 		})
 		return j, err
 	}
