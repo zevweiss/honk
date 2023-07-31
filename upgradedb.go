@@ -20,7 +20,7 @@ import (
 	"os"
 )
 
-var myVersion = 43
+var myVersion = 44
 
 type dbexecer interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -42,6 +42,16 @@ func upgradedb() {
 	if dbversion < 40 {
 		elog.Fatal("database is too old to upgrade")
 	}
+	try := func(s string, args ...interface{}) {
+		_, err := db.Exec(s, args...)
+		if err != nil {
+			elog.Fatalf("can't run %s: %s", s, err)
+		}
+	}
+	setV := func(ver int64) {
+		try("update config set value = ? where key = 'dbversion'", ver)
+	}
+
 	switch dbversion {
 	case 40:
 		doordie(db, "PRAGMA journal_mode=WAL")
@@ -87,6 +97,11 @@ func upgradedb() {
 		doordie(db, "update config set value = 43 where key = 'dbversion'")
 		fallthrough
 	case 43:
+		try("alter table honks add column plain text")
+		try("update honks set plain = ''")
+		setV(44)
+		fallthrough
+	case 44:
 
 	default:
 		elog.Fatalf("can't upgrade unknown version %d", dbversion)

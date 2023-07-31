@@ -152,10 +152,10 @@ func OntIsPresent(ont, noise string) bool {
 			idx += 6
 		}
 		idx += 1
-		if idx + len(ont) >= len(noise) {
+		if idx+len(ont) >= len(noise) {
 			return false
 		}
-		test := noise[idx:idx+len(ont)]
+		test := noise[idx : idx+len(ont)]
 		test = strings.ToLower(test)
 		if test == ont {
 			return true
