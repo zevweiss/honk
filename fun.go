@@ -128,21 +128,21 @@ func reverbolate(userid int64, honks []*Honk) {
 		var misto string
 		for _, m := range h.Mentions {
 			if m.Where != h.Honker && !m.IsPresent(h.Noise) {
-				misto += "(" + m.Who + ")"
+				misto += " " + m.Who
 			}
 		}
 		var mistag string
 		for _, o := range h.Onts {
 			if !OntIsPresent(o, h.Noise) {
-				mistag += "(" + o + ")"
+				mistag += " " + o
 			}
 		}
 		if len(misto) > 0 || len(mistag) > 0 {
 			if len(misto) > 0 {
-				misto = misto + "<p>"
+				misto = "(" + misto[1:] + ")<p>"
 			}
 			if len(mistag) > 0 {
-				mistag = "<p>" + mistag
+				mistag = "<p>(" + mistag[1:] + ")"
 			}
 			h.Noise = misto + h.Noise + mistag
 		}
