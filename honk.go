@@ -145,8 +145,29 @@ func (mention *Mention) IsPresent(noise string) bool {
 }
 
 func OntIsPresent(ont, noise string) bool {
-	ont = ont[1:]
-	return strings.Contains(noise, ">#"+ont) || strings.Contains(noise, "#<span>"+ont)
+	ont = strings.ToLower(ont[1:] + "<")
+	idx := strings.IndexByte(noise, '#')
+	for idx >= 0 {
+		if strings.HasPrefix(noise[idx:], "#<span>") {
+			idx += 5
+		} else {
+			idx += 1
+		}
+		if idx + len(ont) + 1 > len(noise) {
+			return false
+		}
+		test := noise[idx:idx+len(ont)]
+		test = strings.ToLower(test)
+		if test == ont {
+			return true
+		}
+		newidx := strings.IndexByte(noise[idx:], '#')
+		if newidx == -1 {
+			return false
+		}
+		idx += newidx
+	}
+	return false
 }
 
 type OldRevision struct {
