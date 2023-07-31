@@ -145,15 +145,14 @@ func (mention *Mention) IsPresent(noise string) bool {
 }
 
 func OntIsPresent(ont, noise string) bool {
-	ont = strings.ToLower(ont[1:] + "<")
+	ont = strings.ToLower(ont[1:])
 	idx := strings.IndexByte(noise, '#')
 	for idx >= 0 {
 		if strings.HasPrefix(noise[idx:], "#<span>") {
-			idx += 5
-		} else {
-			idx += 1
+			idx += 6
 		}
-		if idx + len(ont) + 1 > len(noise) {
+		idx += 1
+		if idx + len(ont) >= len(noise) {
 			return false
 		}
 		test := noise[idx:idx+len(ont)]
