@@ -82,6 +82,7 @@ func reverbolate(userid int64, honks []*Honk) {
 			local = true
 		}
 		if local && h.What != "bonked" {
+			h.Noise = re_retag.ReplaceAllString(h.Noise, "")
 			h.Noise = re_memes.ReplaceAllString(h.Noise, "")
 		}
 		h.Username, h.Handle = handles(h.Honker)
@@ -124,10 +125,26 @@ func reverbolate(userid int64, honks []*Honk) {
 		h.Precis = demoji(h.Precis)
 		h.Noise = demoji(h.Noise)
 		h.Open = "open"
+		var misto string
 		for _, m := range h.Mentions {
 			if m.Where != h.Honker && !m.IsPresent(h.Noise) {
-				h.Noise = "(" + m.Who + ")" + h.Noise
+				misto += "(" + m.Who + ")"
 			}
+		}
+		var mistag string
+		for _, o := range h.Onts {
+			if !OntIsPresent(o, h.Noise) {
+				mistag += "(" + o + ")"
+			}
+		}
+		if len(misto) > 0 || len(mistag) > 0 {
+			if len(misto) > 0 {
+				misto = misto + "<p>"
+			}
+			if len(mistag) > 0 {
+				mistag = "<p>" + mistag
+			}
+			h.Noise = misto + h.Noise + mistag
 		}
 
 		zap := make(map[string]bool)
@@ -329,7 +346,7 @@ func translate(honk *Honk) {
 	noise = strings.TrimSpace(noise)
 	noise = marker.Mark(noise)
 	honk.Noise = noise
-	honk.Onts = oneofakind(marker.HashTags)
+	honk.Onts = oneofakind(append(honk.Onts, marker.HashTags...))
 	honk.Mentions = bunchofgrapes(marker.Mentions)
 }
 
@@ -438,6 +455,7 @@ var re_memes = regexp.MustCompile("meme: ?([^\n]+)")
 var re_avatar = regexp.MustCompile("avatar: ?([^\n]+)")
 var re_banner = regexp.MustCompile("banner: ?([^\n]+)")
 var re_convoy = regexp.MustCompile("convoy: ?([^\n]+)")
+var re_retag = regexp.MustCompile("tags: ?([^\n]+)")
 var re_convalidate = regexp.MustCompile("^(https?|tag|data):")
 
 func memetize(honk *Honk) {
@@ -473,6 +491,24 @@ func memetize(honk *Honk) {
 		return ""
 	}
 	honk.Noise = re_memes.ReplaceAllStringFunc(honk.Noise, repl)
+}
+
+func recategorize(honk *Honk) {
+	repl := func(x string) string {
+		x = x[5:]
+		for _, t := range strings.Split(x, " ") {
+			if t == "" {
+				continue
+			}
+			if t[0] != '#' {
+				t = "#" + t
+			}
+			dlog.Printf("hashtag: %s", t)
+			honk.Onts = append(honk.Onts, t)
+		}
+		return ""
+	}
+	honk.Noise = re_retag.ReplaceAllStringFunc(honk.Noise, repl)
 }
 
 var re_quickmention = regexp.MustCompile("(^|[ \n])@[[:alnum:]_]+([ \n:;.,']|$)")

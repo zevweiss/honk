@@ -1743,6 +1743,7 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 	honk.Noise = noise
 	precipitate(honk)
 	noise = honk.Noise
+	recategorize(honk)
 	translate(honk)
 
 	if rid != "" {

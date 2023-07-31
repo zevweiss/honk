@@ -1242,6 +1242,7 @@ func jonkjonk(user *WhatAbout, h *Honk) (junk.Junk, junk.Junk) {
 		if !h.Public {
 			jo["directMessage"] = true
 		}
+		h.Noise = re_retag.ReplaceAllString(h.Noise, "")
 		translate(h)
 		redoimages(h)
 		if h.Precis != "" {

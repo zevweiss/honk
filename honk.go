@@ -144,6 +144,11 @@ func (mention *Mention) IsPresent(noise string) bool {
 	return strings.Contains(noise, ">@"+nick) || strings.Contains(noise, "@<span>"+nick)
 }
 
+func OntIsPresent(ont, noise string) bool {
+	ont = ont[1:]
+	return strings.Contains(noise, ">#"+ont) || strings.Contains(noise, "#<span>"+ont)
+}
+
 type OldRevision struct {
 	Precis string
 	Noise  string
