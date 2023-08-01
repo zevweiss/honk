@@ -178,9 +178,10 @@ func reverbolate(userid int64, honks []*Honk) {
 			}
 			if user != nil {
 				htf.RetargetLink = func(href string) string {
+					h2 := strings.ReplaceAll(href, "/@", "/users/")
 					for _, m := range h.Mentions {
-						if href == m.Where {
-							return "/h?xid=" + url.QueryEscape(href)
+						if h2 == m.Where || href == m.Where {
+							return "/h?xid=" + url.QueryEscape(m.Where)
 						}
 					}
 					return href
