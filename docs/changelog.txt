@@ -2,6 +2,10 @@ changelog
 
 === next
 
++ More reliable search.
+
++ Secret tags.
+
 + Mention links locally.
 
 + ::: spoiler markdown
