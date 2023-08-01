@@ -807,6 +807,9 @@ func (honk *Honk) Plain() string {
 		plain = append(plain, d.Name)
 		plain = append(plain, d.Desc)
 	}
+	for _, o := range honk.Onts {
+		plain = append(plain, o)
+	}
 	return strings.Join(plain, " ")
 }
 
