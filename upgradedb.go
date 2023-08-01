@@ -18,9 +18,12 @@ package main
 import (
 	"database/sql"
 	"os"
+	"strings"
+
+	"humungus.tedunangst.com/r/webs/htfilter"
 )
 
-var myVersion = 44
+var myVersion = 45
 
 type dbexecer interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -42,8 +45,14 @@ func upgradedb() {
 	if dbversion < 40 {
 		elog.Fatal("database is too old to upgrade")
 	}
+	var err error
+	var tx *sql.Tx
 	try := func(s string, args ...interface{}) {
-		_, err := db.Exec(s, args...)
+		if tx != nil {
+			_, err = tx.Exec(s, args...)
+		} else {
+			_, err = db.Exec(s, args...)
+		}
 		if err != nil {
 			elog.Fatalf("can't run %s: %s", s, err)
 		}
@@ -102,6 +111,67 @@ func upgradedb() {
 		setV(44)
 		fallthrough
 	case 44:
+		makeplain := func(noise, precis, format string) []string {
+			var plain []string
+			var filt htfilter.Filter
+			filt.WithLinks = true
+			if precis != "" {
+				t, _ := filt.TextOnly(precis)
+				plain = append(plain, t)
+			}
+			if format == "html" {
+				t, _ := filt.TextOnly(noise)
+				plain = append(plain, t)
+			} else {
+				plain = append(plain, noise)
+			}
+			return plain
+		}
+		tx, err = db.Begin()
+		if err != nil {
+			elog.Fatal(err)
+		}
+		plainmap := make(map[int64][]string)
+		rows, err := tx.Query("select honkid, noise, precis, format from honks")
+		if err != nil {
+			elog.Fatal(err)
+		}
+		for rows.Next() {
+			var honkid int64
+			var noise, precis, format string
+			err = rows.Scan(&honkid, &noise, &precis, &format)
+			if err != nil {
+				elog.Fatal(err)
+			}
+			plainmap[honkid] = makeplain(noise, precis, format)
+		}
+		rows.Close()
+		rows, err = tx.Query("select honkid, name, description from donks join filemeta on donks.fileid = filemeta.fileid")
+		if err != nil {
+			elog.Fatal(err)
+		}
+		for rows.Next() {
+			var honkid int64
+			var name, desc string
+			err = rows.Scan(&honkid, &name, &desc)
+			if err != nil {
+				elog.Fatal(err)
+			}
+			plainmap[honkid] = append(plainmap[honkid], name)
+			plainmap[honkid] = append(plainmap[honkid], desc)
+		}
+		rows.Close()
+		for honkid, plain := range plainmap {
+			try("update honks set plain = ? where honkid = ?", strings.Join(plain, " "), honkid)
+		}
+		setV(45)
+		err = tx.Commit()
+		if err != nil {
+			elog.Fatal(err)
+		}
+		tx = nil
+		fallthrough
+	case 45:
 
 	default:
 		elog.Fatalf("can't upgrade unknown version %d", dbversion)
