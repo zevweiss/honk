@@ -315,10 +315,10 @@ func eradicatexonk(userid int64, xid string) {
 	xonk := getxonk(userid, xid)
 	if xonk != nil {
 		deletehonk(xonk.ID)
-	}
-	_, err := stmtSaveZonker.Exec(userid, xid, "zonk")
-	if err != nil {
-		elog.Printf("error eradicating: %s", err)
+		_, err := stmtSaveZonker.Exec(userid, xid, "zonk")
+		if err != nil {
+			elog.Printf("error eradicating: %s", err)
+		}
 	}
 }
 
