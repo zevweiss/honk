@@ -433,6 +433,22 @@ func main() {
 			return
 		}
 		unfollowyou(user, honkerid, true)
+	case "sendmsg":
+		if len(args) < 4 {
+			fmt.Printf("usage: honk send username filename rcpt\n")
+			return
+		}
+		user, err := butwhatabout(args[1])
+		if err != nil {
+			fmt.Printf("user not found\n")
+			return
+		}
+		data, err := os.ReadFile(args[2])
+		if err != nil {
+			fmt.Printf("can't read file\n")
+			return
+		}
+		deliverate(user.ID, args[3], data)
 	case "cleanup":
 		arg := "30"
 		if len(args) > 1 {
