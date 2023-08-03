@@ -1121,7 +1121,7 @@ func cleanupdb(arg string) {
 	if err != nil {
 		elog.Fatal(err)
 	}
-	for xid, _ := range filexids {
+	for xid := range filexids {
 		_, err = tx.Exec("delete from filedata where xid = ?", xid)
 		if err != nil {
 			elog.Fatal(err)

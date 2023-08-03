@@ -602,7 +602,7 @@ func xzone(w http.ResponseWriter, r *http.Request) {
 		honkers = append(honkers, Honker{XID: xid})
 	}
 	rows.Close()
-	for i, _ := range honkers {
+	for i := range honkers {
 		_, honkers[i].Handle = handles(honkers[i].XID)
 	}
 	templinfo := getInfo(r)
