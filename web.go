@@ -733,6 +733,7 @@ func showuser(w http.ResponseWriter, r *http.Request) {
 	templinfo["Name"] = user.Name
 	templinfo["WhatAbout"] = user.HTAbout
 	templinfo["ServerMessage"] = ""
+	templinfo["APAltLink"] = templates.Sprintf("<link href='%s' rel='alternate' type='application/activity+json'>", user.URL)
 	if u != nil {
 		templinfo["HonkCSRF"] = login.GetCSRF("honkhonk", r)
 	}
