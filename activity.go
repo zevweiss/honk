@@ -635,6 +635,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				obj, err = GetJunkHardMode(user.ID, xid)
 				if err != nil {
 					ilog.Printf("error getting bonk: %s: %s", xid, err)
+					return nil
 				}
 			}
 			return xonkxonkfn(obj, origin, isUpdate, true)
