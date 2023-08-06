@@ -338,7 +338,7 @@ func importTwitter(username, source string) {
 	}
 
 	var tweets []*Tweet
-	fd, err := os.Open(source + "/tweet.js")
+	fd, err := os.Open(source + "/tweets.js")
 	if err != nil {
 		elog.Fatal(err)
 	}
@@ -372,11 +372,6 @@ func importTwitter(username, source string) {
 	for _, t := range tweets {
 		xid := fmt.Sprintf("%s/%s/%s", user.URL, honkSep, t.Tweet.IdStr)
 		if havetwid(xid) {
-			continue
-		}
-
-		if t.Tweet.FavoriteCount == "0" || t.Tweet.FavoriteCount == "" {
-			log.Printf("skipping, unworthy tweet")
 			continue
 		}
 

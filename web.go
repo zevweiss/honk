@@ -602,7 +602,7 @@ func xzone(w http.ResponseWriter, r *http.Request) {
 		honkers = append(honkers, Honker{XID: xid})
 	}
 	rows.Close()
-	for i, _ := range honkers {
+	for i := range honkers {
 		_, honkers[i].Handle = handles(honkers[i].XID)
 	}
 	templinfo := getInfo(r)
@@ -2560,6 +2560,9 @@ func apihandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func fiveoh(w http.ResponseWriter, r *http.Request) {
+	if !develMode {
+		return
+	}
 	fd, err := os.OpenFile("violations.json", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		elog.Printf("error opening violations! %s", err)
@@ -2606,7 +2609,11 @@ func bgmonitor() {
 
 func addcspheaders(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Security-Policy", "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; img-src 'self'; media-src 'self'; report-uri /csp-violation")
+		policy := "default-src 'none'; script-src 'self'; connect-src 'self'; style-src 'self'; img-src 'self'; media-src 'self'"
+		if develMode {
+			policy += "; report-uri /csp-violation"
+		}
+		w.Header().Set("Content-Security-Policy", policy)
 		next.ServeHTTP(w, r)
 	})
 }
