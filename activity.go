@@ -133,6 +133,9 @@ var flightdeck = gate.NewSerializer()
 var signGets = true
 
 func GetJunkTimeout(userid int64, url string, timeout time.Duration) (junk.Junk, error) {
+	if rejectorigin(userid, url, false) {
+		return nil, fmt.Errorf("rejected origin: %s", url)
+	}
 	client := http.DefaultClient
 	sign := func(req *http.Request) error {
 		var ki *KeyInfo
