@@ -493,7 +493,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 	maxdepth := 10
 	currenttid := ""
 	goingup := 0
-	var xonkxonkfn func(junk.Junk, string, bool, bool) *Honk
+	var xonkxonkfn func(junk.Junk, string, bool, string) *Honk
 
 	qutify := func(user *WhatAbout, content string) string {
 		if depth >= maxdepth {
@@ -525,7 +525,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					}
 					prevdepth := depth
 					depth = maxdepth
-					xonkxonkfn(j, originate(m), false, false)
+					xonkxonkfn(j, originate(m), false, "")
 					depth = prevdepth
 				}
 			}
@@ -544,10 +544,10 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			ilog.Printf("error getting onemore: %s: %s", xid, err)
 			return
 		}
-		xonkxonkfn(obj, originate(xid), false, false)
+		xonkxonkfn(obj, originate(xid), false, "")
 	}
 
-	xonkxonkfn = func(item junk.Junk, origin string, isUpdate bool, isAnnounce bool) *Honk {
+	xonkxonkfn = func(item junk.Junk, origin string, isUpdate bool, bonker string) *Honk {
 		id, _ := item.GetString("id")
 		what := firstofmany(item, "type")
 		dt, ok := item.GetString("published")
@@ -627,6 +627,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			if !isUpdate && !needbonkid(user, xid) {
 				return nil
 			}
+			bonker, _ = item.GetString("actor")
 			origin = originate(xid)
 			if ok && originate(id) == origin {
 				dlog.Printf("using object in announce for %s", xid)
@@ -638,7 +639,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					return nil
 				}
 			}
-			return xonkxonkfn(obj, origin, isUpdate, true)
+			return xonkxonkfn(obj, origin, isUpdate, bonker)
 		case "Update":
 			isUpdate = true
 			fallthrough
@@ -660,7 +661,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 				ilog.Printf("no object for creation %s", id)
 				return nil
 			}
-			return xonkxonkfn(obj, origin, isUpdate, isAnnounce)
+			return xonkxonkfn(obj, origin, isUpdate, bonker)
 		case "Read":
 			xid, ok = item.GetString("object")
 			if ok {
@@ -673,7 +674,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					ilog.Printf("error getting read: %s", err)
 					return nil
 				}
-				return xonkxonkfn(obj, originate(xid), false, false)
+				return xonkxonkfn(obj, originate(xid), false, "")
 			}
 			return nil
 		case "Add":
@@ -689,7 +690,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 					ilog.Printf("error getting add: %s", err)
 					return nil
 				}
-				return xonkxonkfn(obj, originate(xid), false, false)
+				return xonkxonkfn(obj, originate(xid), false, "")
 			}
 			return nil
 		case "Move":
@@ -718,7 +719,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			obj = item
 			what = "event"
 		case "ChatMessage":
-			isAnnounce = false
+			bonker = ""
 			obj = item
 			what = "chonk"
 		default:
@@ -726,7 +727,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			dumpactivity(item)
 			return nil
 		}
-		if isAnnounce {
+		if bonker != "" {
 			what = "bonk"
 		}
 
@@ -759,7 +760,9 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 			if xonk.Honker == "" {
 				xonk.Honker = extractattrto(obj)
 			}
-			xonk.Oonker = extractattrto(obj)
+			if bonker != "" {
+				xonk.Honker, xonk.Oonker = bonker, xonk.Honker
+			}
 			if xonk.Oonker == xonk.Honker {
 				xonk.Oonker = ""
 			}
@@ -1129,7 +1132,7 @@ func xonksaver(user *WhatAbout, item junk.Junk, origin string) *Honk {
 		return &xonk
 	}
 
-	return xonkxonkfn(item, origin, false, false)
+	return xonkxonkfn(item, origin, false, "")
 }
 
 func dumpactivity(item junk.Junk) {
