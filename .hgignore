@@ -1,4 +1,9 @@
-.*\.db
+syntax: glob
+.preflightcheck
+*.db
+*.db-shm
+*.db-wal
 memes
 emus
 honk
+violations.json
