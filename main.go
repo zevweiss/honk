@@ -74,6 +74,10 @@ func main() {
 	ilog = log.I
 	dlog = log.D
 
+	if os.Geteuid() == 0 {
+		elog.Fatalf("do not run honk as root")
+	}
+
 	args := flag.Args()
 	cmd := "run"
 	if len(args) > 0 {
