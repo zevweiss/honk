@@ -2656,6 +2656,7 @@ func serve() {
 	go redeliverator()
 	go tracker()
 	go bgmonitor()
+	go qotd()
 	loadLingo()
 	emuinit()
 
