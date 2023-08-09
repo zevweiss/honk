@@ -150,7 +150,7 @@ func GetJunkTimeout(userid int64, url string, timeout time.Duration) (junk.Junk,
 		sign = nil
 	}
 	fn := func() (interface{}, error) {
-		at := thefakename
+		at := theonetruename
 		if strings.Contains(url, ".well-known/webfinger?resource") {
 			at = "application/jrd+json"
 		}
