@@ -556,6 +556,30 @@ func export(username, file string) {
 		j["orderedItems"] = jonks
 		j.Write(w)
 	}
+	{
+		w, err := zd.Create("inbox.json")
+		if err != nil {
+			elog.Fatal(err)
+		}
+		var jonks []junk.Junk
+		rows, err := stmtHonksForMe.Query(0, user.ID, "0", user.ID, 1234567)
+		honks := getsomehonks(rows, err)
+		for _, honk := range honks {
+			j, _ := jonkjonk(user, honk)
+			for _, donk := range honk.Donks {
+				donks[donk.XID] = true
+			}
+			jonks = append(jonks, j)
+		}
+		j := junk.New()
+		j["@context"] = itiswhatitis
+		j["id"] = user.URL + "/inbox"
+		j["attributedTo"] = user.URL
+		j["type"] = "OrderedCollection"
+		j["totalItems"] = len(jonks)
+		j["orderedItems"] = jonks
+		j.Write(w)
+	}
 	zd.Create("media/")
 	for donk := range donks {
 		var media string
