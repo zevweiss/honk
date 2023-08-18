@@ -122,6 +122,11 @@ func main() {
 			elog.Fatal("import username mastodon|twitter srcdir")
 		}
 		importMain(args[1], args[2], args[3])
+	case "export":
+		if len(args) != 3 {
+			elog.Fatal("export username destdir")
+		}
+		export(args[1], args[2])
 	case "devel":
 		if len(args) != 2 {
 			elog.Fatal("need an argument: devel (on|off)")

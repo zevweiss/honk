@@ -16,6 +16,7 @@
 package main
 
 import (
+	"archive/zip"
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
@@ -27,6 +28,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"humungus.tedunangst.com/r/webs/junk"
 )
 
 func importMain(username, flavor, source string) {
@@ -512,4 +515,62 @@ func importInstagram(username, source string) {
 		err := savehonk(&honk)
 		log.Printf("honk saved %v -> %v", xid, err)
 	}
+}
+
+func export(username, file string) {
+	user, err := butwhatabout(username)
+	if err != nil {
+		elog.Fatal(err)
+	}
+	fd, err := os.OpenFile(file, os.O_RDWR|os.O_CREATE|os.O_EXCL, 0666)
+	if err != nil {
+		elog.Fatal(err)
+	}
+	zd := zip.NewWriter(fd)
+	donks := make(map[string]bool)
+	{
+		w, err := zd.Create("outbox.json")
+		if err != nil {
+			elog.Fatal(err)
+		}
+		var jonks []junk.Junk
+		rows, err := stmtUserHonks.Query(0, 3, user.Name, "0", 1234567)
+		honks := getsomehonks(rows, err)
+		for _, honk := range honks {
+			noise := honk.Noise
+			j, jo := jonkjonk(user, honk)
+			if honk.Format == "markdown" {
+				jo["source"] = noise
+			}
+			for _, donk := range honk.Donks {
+				donks[donk.XID] = true
+			}
+			jonks = append(jonks, j)
+		}
+		j := junk.New()
+		j["@context"] = itiswhatitis
+		j["id"] = user.URL + "/outbox"
+		j["attributedTo"] = user.URL
+		j["type"] = "OrderedCollection"
+		j["totalItems"] = len(jonks)
+		j["orderedItems"] = jonks
+		j.Write(w)
+	}
+	zd.Create("media/")
+	for donk := range donks {
+		var media string
+		var data []byte
+		w, err := zd.Create("media/" + donk)
+		if err != nil {
+			elog.Fatal(err)
+		}
+		row := stmtGetFileData.QueryRow(donk)
+		err = row.Scan(&media, &data)
+		if err != nil {
+			elog.Fatal(err)
+		}
+		w.Write(data)
+	}
+	zd.Close()
+	fd.Close()
 }
