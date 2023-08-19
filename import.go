@@ -36,6 +36,8 @@ func importMain(username, flavor, source string) {
 	switch flavor {
 	case "mastodon":
 		importMastodon(username, source)
+	case "honk":
+		importHonk(username, source)
 	case "twitter":
 		importTwitter(username, source)
 	case "instagram":
@@ -45,11 +47,13 @@ func importMain(username, flavor, source string) {
 	}
 }
 
-type TootObject struct {
+type ActivityObject struct {
+	AttributedTo string
 	Summary      string
 	Content      string
 	InReplyTo    string
 	Conversation string
+	Context      string
 	Published    time.Time
 	Tag          []struct {
 		Type string
@@ -63,10 +67,10 @@ type TootObject struct {
 	}
 }
 
-type PlainTootObject TootObject
+type PlainActivityObject ActivityObject
 
-func (obj *TootObject) UnmarshalJSON(b []byte) error {
-	p := (*PlainTootObject)(obj)
+func (obj *ActivityObject) UnmarshalJSON(b []byte) error {
+	p := (*PlainActivityObject)(obj)
 	json.Unmarshal(b, p)
 	return nil
 }
@@ -77,8 +81,9 @@ func importMastodon(username, source string) {
 		elog.Fatal(err)
 	}
 
-	if _, err := os.Stat(source + "/outbox.json"); err == nil {
-		importMastotoots(user, source)
+	outbox := source + "/outbox.json"
+	if _, err := os.Stat(outbox); err == nil {
+		importActivities(user, outbox, source)
 	} else {
 		ilog.Printf("skipping outbox.json!")
 	}
@@ -89,19 +94,33 @@ func importMastodon(username, source string) {
 	}
 }
 
-func importMastotoots(user *WhatAbout, source string) {
-	type Toot struct {
+func importHonk(username, source string) {
+	user, err := butwhatabout(username)
+	if err != nil {
+		elog.Fatal(err)
+	}
+
+	outbox := source + "/outbox.json"
+	if _, err := os.Stat(outbox); err == nil {
+		importActivities(user, outbox, source)
+	} else {
+		ilog.Printf("skipping outbox.json!")
+	}
+}
+
+func importActivities(user *WhatAbout, filename, source string) {
+	type Activity struct {
 		Id     string
 		Type   string
-		To     []string
+		To     interface{}
 		Cc     []string
-		Object TootObject
+		Object ActivityObject
 	}
 	var outbox struct {
-		OrderedItems []Toot
+		OrderedItems []Activity
 	}
 	ilog.Println("Importing honks...")
-	fd, err := os.Open(source + "/outbox.json")
+	fd, err := os.Open(filename)
 	if err != nil {
 		elog.Fatal(err)
 	}
@@ -123,7 +142,11 @@ func importMastotoots(user *WhatAbout, source string) {
 	}
 
 	re_tootid := regexp.MustCompile("[^/]+$")
-	for _, item := range outbox.OrderedItems {
+	items := outbox.OrderedItems
+	for i, j := 0, len(items)-1; i < j; i, j = i+1, j-1 {
+		items[i], items[j] = items[j], items[i]
+	}
+	for _, item := range items {
 		toot := item
 		if toot.Type != "Create" {
 			continue
@@ -136,6 +159,21 @@ func importMastotoots(user *WhatAbout, source string) {
 		if havetoot(xid) {
 			continue
 		}
+
+		convoy := toot.Object.Context
+		if convoy == "" {
+			convoy = toot.Object.Conversation
+		}
+		var audience []string
+		to, ok := toot.To.(string)
+		if ok {
+			audience = append(audience, to)
+		} else {
+			for _, t := range toot.To.([]interface{}) {
+				audience = append(audience, t.(string))
+			}
+		}
+		audience = append(audience, toot.Cc...)
 		honk := Honk{
 			UserID:   user.ID,
 			What:     "honk",
@@ -144,9 +182,9 @@ func importMastotoots(user *WhatAbout, source string) {
 			RID:      toot.Object.InReplyTo,
 			Date:     toot.Object.Published,
 			URL:      xid,
-			Audience: append(toot.To, toot.Cc...),
+			Audience: audience,
 			Noise:    toot.Object.Content,
-			Convoy:   toot.Object.Conversation,
+			Convoy:   convoy,
 			Whofore:  2,
 			Format:   "html",
 			Precis:   toot.Object.Summary,
@@ -537,13 +575,14 @@ func export(username, file string) {
 		rows, err := stmtUserHonks.Query(0, 3, user.Name, "0", 1234567)
 		honks := getsomehonks(rows, err)
 		for _, honk := range honks {
+			for _, donk := range honk.Donks {
+				donk.URL = "media/" + donk.XID
+				donks[donk.XID] = true
+			}
 			noise := honk.Noise
 			j, jo := jonkjonk(user, honk)
 			if honk.Format == "markdown" {
 				jo["source"] = noise
-			}
-			for _, donk := range honk.Donks {
-				donks[donk.XID] = true
 			}
 			jonks = append(jonks, j)
 		}
@@ -565,10 +604,11 @@ func export(username, file string) {
 		rows, err := stmtHonksForMe.Query(0, user.ID, "0", user.ID, 1234567)
 		honks := getsomehonks(rows, err)
 		for _, honk := range honks {
-			j, _ := jonkjonk(user, honk)
 			for _, donk := range honk.Donks {
+				donk.URL = "media/" + donk.XID
 				donks[donk.XID] = true
 			}
+			j, _ := jonkjonk(user, honk)
 			jonks = append(jonks, j)
 		}
 		j := junk.New()

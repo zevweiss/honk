@@ -119,7 +119,7 @@ func main() {
 		adminscreen()
 	case "import":
 		if len(args) != 4 {
-			elog.Fatal("import username mastodon|twitter srcdir")
+			elog.Fatal("import username honk|mastodon|twitter srcdir")
 		}
 		importMain(args[1], args[2], args[3])
 	case "export":
