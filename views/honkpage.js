@@ -363,3 +363,17 @@ function fillcheckin() {
 		}, gpsoptions)
 	}
 }
+
+document.addEventListener("keydown", function(e) {
+	if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+		return;
+
+	switch (e.code) {
+	case "KeyR":
+		refreshhonks(document.getElementById("honkrefresher"));
+		break;
+	case "KeyS":
+		oldestnewest(document.getElementById("newerscroller"));
+		break;
+	}
+})
