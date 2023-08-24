@@ -1783,7 +1783,7 @@ func submithonk(w http.ResponseWriter, r *http.Request) *Honk {
 				honk.Precis = "re: " + honk.Precis
 			}
 		}
-	} else {
+	} else if updatexid == "" {
 		honk.Audience = []string{thewholeworld}
 	}
 	if honk.Noise != "" && honk.Noise[0] == '@' {
