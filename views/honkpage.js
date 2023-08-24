@@ -364,6 +364,29 @@ function fillcheckin() {
 	}
 }
 
+function scrollnexthonk() {
+	var honks = document.getElementsByClassName("honk");
+	for (var i = 0; i < honks.length; i++) {
+		var h = honks[i];
+		var b = h.getBoundingClientRect();
+		if (b.top > 1.0) {
+			h.scrollIntoView();
+			break;
+		}
+	}
+}
+
+function scrollprevioushonk() {
+	var honks = document.getElementsByClassName("honk");
+	for (var i = 1; i < honks.length; i++) {
+		var b = honks[i].getBoundingClientRect();
+		if (b.top > -1.0) {
+			honks[i-1].scrollIntoView();
+			break;
+		}
+	}
+}
+
 document.addEventListener("keydown", function(e) {
 	if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
 		return;
@@ -374,6 +397,12 @@ document.addEventListener("keydown", function(e) {
 		break;
 	case "KeyS":
 		oldestnewest(document.getElementById("newerscroller"));
+		break;
+	case "KeyJ":
+		scrollnexthonk();
+		break;
+	case "KeyK":
+		scrollprevioushonk();
 		break;
 	}
 })
