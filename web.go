@@ -449,7 +449,20 @@ func inbox(w http.ResponseWriter, r *http.Request) {
 			addreaction(user, obj, who, content)
 		}
 	default:
-		go xonksaver(user, j, origin)
+		go saveandcheck(user, j, origin)
+	}
+}
+
+func saveandcheck(user *WhatAbout, j junk.Junk, origin string) {
+	xonk := xonksaver(user, j, origin)
+	if xonk == nil {
+		return
+	}
+	if sname := shortname(user.ID, xonk.Honker); sname == "" {
+		dlog.Printf("received unexpected activity from %s", xonk.Honker)
+		if xonk.Whofore == 0 {
+			dlog.Printf("it's not even for me!")
+		}
 	}
 }
 
