@@ -790,9 +790,19 @@ func loadchatter(userid int64) []*Chatter {
 }
 
 func (honk *Honk) Plain() string {
+	return honktoplain(honk, false)
+}
+
+func (honk *Honk) VeryPlain() string {
+	return honktoplain(honk, true)
+}
+
+func honktoplain(honk *Honk, very bool) string {
 	var plain []string
 	var filt htfilter.Filter
-	filt.WithLinks = true
+	if !very {
+		filt.WithLinks = true
+	}
 	if honk.Precis != "" {
 		t, _ := filt.TextOnly(honk.Precis)
 		plain = append(plain, t)
