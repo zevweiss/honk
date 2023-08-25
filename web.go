@@ -1078,9 +1078,16 @@ func threadsort(honks []*Honk) []*Honk {
 		}
 		p.Style += fmt.Sprintf(" level%d", level)
 		childs := kids[p.XID]
-		sort.SliceStable(childs, func(i, j int) bool {
-			return sameperson(childs[i], p) && !sameperson(childs[j], p)
-		})
+		if false {
+			sort.SliceStable(childs, func(i, j int) bool {
+				return sameperson(childs[i], p) && !sameperson(childs[j], p)
+			})
+		}
+		if true {
+			sort.SliceStable(childs, func(i, j int) bool {
+				return !sameperson(childs[i], p) && sameperson(childs[j], p)
+			})
+		}
 		for _, h := range childs {
 			if !done[h] {
 				done[h] = true
