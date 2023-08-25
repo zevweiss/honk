@@ -384,13 +384,13 @@ function hideelement(el) {
 	if (!el) return
 	el.style.display = "none"
 }
-function updatedonker() {
-	var el = document.getElementById("donker")
+function updatedonker(ev) {
+	var el = ev.target.parentElement
 	el.children[1].textContent = el.children[0].value.slice(-20)
-	el = document.getElementById("donkdescriptor")
-	el.style.display = ""
-	el = document.getElementById("saveddonkxid")
+	el = el.nextSibling
 	el.value = ""
+	el = el.parentElement.nextSibling
+	el.style.display = ""
 }
 var checkinprec = 100.0
 var gpsoptions = {
