@@ -344,6 +344,7 @@ func translate(honk *Honk) {
 	var marker mz.Marker
 	marker.HashLinker = ontoreplacer
 	marker.AtLinker = attoreplacer
+	marker.AllowImages = true
 	noise = strings.TrimSpace(noise)
 	noise = marker.Mark(noise)
 	honk.Noise = noise
