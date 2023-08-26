@@ -432,6 +432,9 @@ var emucache = cache.New(cache.Options{Filler: func(ename string) (Emu, bool) {
 			continue
 		}
 		url := fmt.Sprintf("https://%s/emu/%s%s", serverName, fname, ext)
+		if develMode {
+			url = fmt.Sprintf("/emu/%s%s", fname, ext)
+		}
 		return Emu{ID: url, Name: ename, Type: "image/" + ext[1:]}, true
 	}
 	return Emu{Name: ename, ID: "", Type: "image/png"}, true
