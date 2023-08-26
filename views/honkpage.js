@@ -457,6 +457,11 @@ document.addEventListener("keydown", function(e) {
 	case "KeyK":
 		scrollprevioushonk();
 		break;
+	case "Slash":
+		document.getElementById("topmenu").open = true
+		document.getElementById("searchbox").focus()
+		e.preventDefault()
+		break
 	}
 })
 
