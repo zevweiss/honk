@@ -2,6 +2,10 @@ changelog
 
 ### next
 
++ Allow bigger image uploads.
+
++ Some hotkeys for the web UI.
+
 + Upload multiple files (but beware).
 
 + Better page titles.
