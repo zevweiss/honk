@@ -1650,7 +1650,7 @@ func formtodonk(w http.ResponseWriter, r *http.Request, filehdr *multipart.FileH
 	file.Close()
 	data := buf.Bytes()
 	var media, name string
-	img, err := shrinkit(data)
+	img, err := bigshrink(data)
 	if err == nil {
 		data = img.Data
 		format := img.Format
