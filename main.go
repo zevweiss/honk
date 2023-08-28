@@ -112,6 +112,8 @@ func main() {
 	getconfig("devel", &develMode)
 	getconfig("fasttimeout", &fastTimeout)
 	getconfig("slowtimeout", &slowTimeout)
+	getconfig("honkwindow", &honkwindow)
+	honkwindow *= 24 * time.Hour
 	getconfig("signgets", &signGets)
 	prepareStatements(db)
 	switch cmd {

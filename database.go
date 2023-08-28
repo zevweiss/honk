@@ -36,7 +36,7 @@ import (
 	"humungus.tedunangst.com/r/webs/mz"
 )
 
-var honkwindow time.Duration = 7 * 24 * time.Hour
+var honkwindow time.Duration = 7
 
 //go:embed schema.sql
 var sqlSchema string
