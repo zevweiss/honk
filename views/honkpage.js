@@ -440,9 +440,11 @@ function scrollprevioushonk() {
 	}
 }
 
-document.addEventListener("keydown", function(e) {
+function hotkey(e) {
 	if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
-		return;
+		return
+	if (e.ctrlKey || e.altKey)
+		return
 
 	switch (e.code) {
 	case "KeyR":
@@ -463,7 +465,9 @@ document.addEventListener("keydown", function(e) {
 		e.preventDefault()
 		break
 	}
-})
+}
+
+document.addEventListener("keydown", hotkey)
 
 function addemu(elem) {
 	const data = elem.alt
