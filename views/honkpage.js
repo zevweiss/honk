@@ -404,5 +404,9 @@ document.addEventListener("keydown", function(e) {
 	case "KeyK":
 		scrollprevioushonk();
 		break;
+	case "KeyM":
+		var m = document.getElementById("topmenu");
+		m.open = !m.open;
+		break;
 	}
 })
