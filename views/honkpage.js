@@ -423,8 +423,10 @@ function scrollnexthonk() {
 		var h = honks[i];
 		var b = h.getBoundingClientRect();
 		if (b.top > 1.0) {
-			h.scrollIntoView();
-			break;
+			h.scrollIntoView()
+			var a = h.querySelector(".actions summary")
+			if (a) a.focus({ preventScroll: true })
+			break
 		}
 	}
 }
@@ -434,8 +436,10 @@ function scrollprevioushonk() {
 	for (var i = 1; i < honks.length; i++) {
 		var b = honks[i].getBoundingClientRect();
 		if (b.top > -1.0) {
-			honks[i-1].scrollIntoView();
-			break;
+			honks[i-1].scrollIntoView()
+			var a = honks[i-1].querySelector(".actions summary")
+			if (a) a.focus({ preventScroll: true })
+			break
 		}
 	}
 }
@@ -459,6 +463,15 @@ function hotkey(e) {
 	case "KeyK":
 		scrollprevioushonk();
 		break;
+	case "KeyM":
+		var menu = document.getElementById("topmenu")
+		menu.open = true
+		menu.querySelector("a").focus()
+		break
+	case "Escape":
+		var menu = document.getElementById("topmenu")
+		menu.open = false
+		break
 	case "Slash":
 		document.getElementById("topmenu").open = true
 		document.getElementById("searchbox").focus()
