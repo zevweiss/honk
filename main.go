@@ -115,12 +115,16 @@ func main() {
 	getconfig("usersep", &userSep)
 	getconfig("honksep", &honkSep)
 	getconfig("devel", &develMode)
+	if develMode {
+		gogglesDoNothing()
+	}
 	getconfig("fasttimeout", &fastTimeout)
 	getconfig("slowtimeout", &slowTimeout)
 	getconfig("honkwindow", &honkwindow)
 	honkwindow *= 24 * time.Hour
-	getconfig("signgets", &signGets)
+
 	prepareStatements(db)
+
 	switch cmd {
 	case "admin":
 		adminscreen()
