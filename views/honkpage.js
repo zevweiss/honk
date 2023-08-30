@@ -82,7 +82,7 @@ var lehonkbutton = document.getElementById("honkingtime")
 function oldestnewest(btn) {
 	var els = document.getElementsByClassName("glow")
 	if (els.length) {
-		els[els.length-1].scrollIntoView()
+		els[els.length-1].scrollIntoView({ behavior: "smooth" })
 	}
 }
 function removeglow() {
