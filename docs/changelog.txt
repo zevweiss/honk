@@ -1,5 +1,9 @@
 changelog
 
+### 1.1.1 Required Refinement
+
++ Fix help file stylesheet link.
+
 ### 1.1.0 Eventual Enshittification
 
 + Fix backup command.
