@@ -17,6 +17,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/sha512"
 	"database/sql"
 	"fmt"
 	"html/template"
@@ -2690,6 +2691,22 @@ func emuinit() {
 	sort.Slice(allemus, func(i, j int) bool {
 		return allemus[i].Name < allemus[j].Name
 	})
+}
+
+var savedassetparams = make(map[string]string)
+
+func getassetparam(file string) string {
+	if p, ok := savedassetparams[file]; ok {
+		return p
+	}
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return ""
+	}
+	hasher := sha512.New()
+	hasher.Write(data)
+
+	return fmt.Sprintf("?v=%.8x", hasher.Sum(nil))
 }
 
 func serve() {
