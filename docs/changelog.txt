@@ -1,6 +1,10 @@
 changelog
 
-### next
+### 1.1.0 Eventual Enshittification
+
++ Fix backup command.
+
++ Fixes for markdown.
 
 + Allow bigger image uploads.
 
