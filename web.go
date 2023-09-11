@@ -38,6 +38,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"humungus.tedunangst.com/r/webs/cache"
+	"humungus.tedunangst.com/r/webs/gencache"
 	"humungus.tedunangst.com/r/webs/httpsig"
 	"humungus.tedunangst.com/r/webs/junk"
 	"humungus.tedunangst.com/r/webs/login"
@@ -88,6 +89,9 @@ func getInfo(r *http.Request) map[string]interface{} {
 	templinfo["ServerName"] = serverName
 	templinfo["IconName"] = iconName
 	templinfo["UserSep"] = userSep
+	if r == nil {
+		return templinfo
+	}
 	if u := login.GetUserInfo(r); u != nil {
 		templinfo["UserInfo"], _ = butwhatabout(u.Username)
 		templinfo["UserStyle"] = getuserstyle(u)
@@ -98,9 +102,50 @@ func getInfo(r *http.Request) map[string]interface{} {
 	return templinfo
 }
 
+var oldnews = gencache.New(gencache.Options[string, []byte]{
+	Fill: func(url string) ([]byte, bool) {
+		templinfo := getInfo(nil)
+		var honks []*Honk
+		var userid int64 = -1
+
+		templinfo["ServerMessage"] = serverMsg
+		switch url {
+		case "/events":
+			honks = geteventhonks(userid)
+			templinfo["ServerMessage"] = "some recent and upcoming events"
+		default:
+			templinfo["ShowRSS"] = true
+			honks = getpublichonks()
+		}
+		reverbolate(userid, honks)
+		templinfo["Honks"] = honks
+		templinfo["MapLink"] = getmaplink(nil)
+		var buf bytes.Buffer
+		err := readviews.Execute(&buf, "honkpage.html", templinfo)
+		if err != nil {
+			elog.Print(err)
+		}
+		return buf.Bytes(), true
+
+	},
+	Duration: 1 * time.Minute,
+})
+
+func lonelypage(w http.ResponseWriter, r *http.Request) {
+	page, _ := oldnews.Get(r.URL.Path)
+	if !develMode {
+		w.Header().Set("Cache-Control", "max-age=60")
+	}
+	w.Write(page)
+}
+
 func homepage(w http.ResponseWriter, r *http.Request) {
-	templinfo := getInfo(r)
 	u := login.GetUserInfo(r)
+	if u == nil {
+		lonelypage(w, r)
+		return
+	}
+	templinfo := getInfo(r)
 	var honks []*Honk
 	var userid int64 = -1
 
@@ -1199,10 +1244,13 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 	//reversehonks(rawhonks)
 	rawhonks = threadsort(rawhonks)
 	var honks []*Honk
-	for _, h := range rawhonks {
+	for i, h := range rawhonks {
 		if h.XID == xid {
 			templinfo["Honkology"] = honkology(h)
-			if len(honks) != 0 {
+			if i > 0 {
+				top := new(Honk)
+				*top = *h
+				honks = append([]*Honk{top}, honks...)
 				h.Style += " glow"
 			}
 		}
