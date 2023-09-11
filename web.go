@@ -1248,9 +1248,6 @@ func showonehonk(w http.ResponseWriter, r *http.Request) {
 		if h.XID == xid {
 			templinfo["Honkology"] = honkology(h)
 			if i > 0 {
-				top := new(Honk)
-				*top = *h
-				honks = append([]*Honk{top}, honks...)
 				h.Style += " glow"
 			}
 		}
