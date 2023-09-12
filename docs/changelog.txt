@@ -1,5 +1,9 @@
 changelog
 
+### next
+
++ Finally fix slow public queries.
+
 ### 1.1.1 Required Refinement
 
 + Fix help file stylesheet link.

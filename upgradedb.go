@@ -23,7 +23,7 @@ import (
 	"humungus.tedunangst.com/r/webs/htfilter"
 )
 
-var myVersion = 45
+var myVersion = 46 // idx whotwo
 
 type dbexecer interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
@@ -172,6 +172,10 @@ func upgradedb() {
 		tx = nil
 		fallthrough
 	case 45:
+		try("create index idx_honkswhotwo on honks(whofore) where whofore = 2")
+		setV(46)
+		fallthrough
+	case 46:
 		try("analyze")
 
 	default:
