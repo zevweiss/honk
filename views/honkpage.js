@@ -465,8 +465,12 @@ function hotkey(e) {
 		break;
 	case "KeyM":
 		var menu = document.getElementById("topmenu")
-		menu.open = true
-		menu.querySelector("a").focus()
+		if (!menu.open) {
+			menu.open = true
+			menu.querySelector("a").focus()
+		} else {
+			menu.open = false
+		}
 		break
 	case "Escape":
 		var menu = document.getElementById("topmenu")
