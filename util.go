@@ -431,6 +431,10 @@ func openListener() (net.Listener, error) {
 	if err != nil {
 		return nil, err
 	}
+	if strings.HasPrefix(listenAddr, "fcgi:") {
+		listenAddr = listenAddr[5:]
+		usefcgi = true
+	}
 	if listenAddr == "" {
 		return nil, fmt.Errorf("must have listenaddr")
 	}

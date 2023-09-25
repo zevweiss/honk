@@ -25,6 +25,7 @@ import (
 	notrand "math/rand"
 	"mime/multipart"
 	"net/http"
+	"net/http/fcgi"
 	"net/url"
 	"os"
 	"os/signal"
@@ -2754,6 +2755,8 @@ func getassetparam(file string) string {
 	return fmt.Sprintf("?v=%.8x", hasher.Sum(nil))
 }
 
+var usefcgi bool
+
 func serve() {
 	db := opendatabase()
 	login.Init(login.InitArgs{Db: db, Logger: ilog, Insecure: develMode, SameSiteStrict: !develMode})
@@ -2892,6 +2895,12 @@ func serve() {
 	loggedin.HandleFunc("/hydra", webhydra)
 	loggedin.HandleFunc("/emus", showemus)
 	loggedin.Handle("/submithonker", login.CSRFWrap("submithonker", http.HandlerFunc(websubmithonker)))
+
+	if usefcgi {
+		err = fcgi.Serve(listener, mux)
+	} else {
+		err = http.Serve(listener, mux)
+	}
 
 	err = http.Serve(listener, mux)
 	if err != nil {

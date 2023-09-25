@@ -2,6 +2,8 @@ changelog
 
 ### next
 
++ FastCGI listening.
+
 + Finally fix slow public queries.
 
 ### 1.1.1 Required Refinement
