@@ -286,8 +286,10 @@ input[type=file] {
 #emupicker img{margin:0;}
 .emuload{background:var(--bg-page);padding:0.5em;}
 
-.subtle details.noise {
+.subtle .noise {
 		color: var(--fg-subtle);
+}
+.subtle details.noise {
 		font-size: 0.8em;
 }
 .subtle .noise a {
