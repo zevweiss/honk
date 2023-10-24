@@ -20,6 +20,7 @@ import (
 	"regexp"
 	"sort"
 	"time"
+	"unicode"
 
 	"humungus.tedunangst.com/r/webs/cache"
 )
@@ -33,6 +34,7 @@ type Filter struct {
 	IncludeAudience bool   `json:",omitempty"`
 	Text            string `json:",omitempty"`
 	re_text         *regexp.Regexp
+	IsReply         bool   `json:",omitempty"`
 	IsAnnounce      bool   `json:",omitempty"`
 	AnnounceOf      string `json:",omitempty"`
 	Reject          bool   `json:",omitempty"`
@@ -107,9 +109,9 @@ func filtcachefiller(userid int64) (afiltermap, bool) {
 				expflush = filt.Expiration
 			}
 		}
-		if t := filt.Text; t != "" {
-			wordfront := t[0] != '#'
-			wordtail := true
+		if t := filt.Text; t != "" && t != "." {
+			wordfront := unicode.IsLetter(rune(t[0]))
+			wordtail := unicode.IsLetter(rune(t[len(t)-1]))
 			t = "(?i:" + t + ")"
 			if wordfront {
 				t = "\\b" + t
@@ -124,8 +126,8 @@ func filtcachefiller(userid int64) (afiltermap, bool) {
 			}
 		}
 		if t := filt.Rewrite; t != "" {
-			wordfront := t[0] != '#'
-			wordtail := true
+			wordfront := unicode.IsLetter(rune(t[0]))
+			wordtail := unicode.IsLetter(rune(t[len(t)-1]))
 			t = "(?i:" + t + ")"
 			if wordfront {
 				t = "\\b" + t
@@ -306,6 +308,13 @@ func matchfilterX(h *Honk, f *Filter) string {
 			}
 		}
 	}
+	if match && f.IsReply {
+		match = false
+		if h.RID != "" {
+			match = true
+			rv += " reply"
+		}
+	}
 	if match && f.IsAnnounce {
 		match = false
 		if (f.AnnounceOf == "" && h.Oonker != "") || f.AnnounceOf == h.Oonker ||
@@ -314,7 +323,7 @@ func matchfilterX(h *Honk, f *Filter) string {
 			rv += " announce"
 		}
 	}
-	if match && f.Text != "" {
+	if match && f.Text != "" && f.Text != "." {
 		match = false
 		re := f.re_text
 		m := re.FindString(h.Precis)
@@ -332,6 +341,13 @@ func matchfilterX(h *Honk, f *Filter) string {
 		if m != "" {
 			match = true
 			rv = m
+		}
+	}
+	if match && f.Text == "." {
+		match = false
+		if h.Precis != "" {
+			match = true
+			rv = h.Precis
 		}
 	}
 	if match {
@@ -397,6 +413,12 @@ func unsee(honks []*Honk, userid int64) {
 				if h.Precis == "" {
 					h.Precis = "really freaking long"
 				}
+				h.Open = ""
+			}
+		}
+	} else {
+		for _, h := range honks {
+			if h.Precis != "" {
 				h.Open = ""
 			}
 		}

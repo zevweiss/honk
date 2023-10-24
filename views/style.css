@@ -146,7 +146,7 @@ textarea {
 	font-size: 1em;
 	background: var(--bg-page);
 	color: var(--fg);
-	width: 600px;
+	width: 100%;
 	height: 4em;
 	margin-bottom: 0.5em;
 	box-sizing: border-box;
@@ -175,7 +175,6 @@ input[type=file] {
 .glow {
 	box-shadow: 0px 0px 16px var(--hl);
 }
-
 .honk {
 	margin: auto;
 	background: var(--bg-dark);
@@ -186,6 +185,35 @@ input[type=file] {
 	padding-right: 1em;
 	padding-top: 0;
 	overflow: hidden;
+}
+
+.level1 {
+	margin-left: 0.5em;
+}
+.level1::before {
+	position: absolute;
+	content: ">";
+}
+.level2 {
+	margin-left: 1.0em;
+}
+.level2::before {
+	position: absolute;
+	content: ">>";
+}
+.level3 {
+	margin-left: 1.5em;
+}
+.level3::before {
+	position: absolute;
+	content: ">>>";
+}
+.level4 {
+	margin-left: 2.0em;
+}
+.level4::before {
+	position: absolute;
+	content: ">>>>";
 }
 
 .chat {
@@ -253,8 +281,15 @@ input[type=file] {
 .honk	details.actions summary {
 		color: var(--fg-subtle);
 }
+
+#emupicker{height:300px;overflow-y:scroll;padding:3px;background:var(--bg-dark);border:solid 5px var(--fg-subtle);text-align:center;display:none;}
+#emupicker img{margin:0;}
+.emuload{background:var(--bg-page);padding:0.5em;}
+
 .subtle .noise {
 		color: var(--fg-subtle);
+}
+.subtle details.noise {
 		font-size: 0.8em;
 }
 .subtle .noise a {
@@ -276,7 +311,7 @@ input[type=file] {
 .limited	details.actions summary {
 		color: var(--fg-limited);
 	}
-details.noise[open] summary {
+details.noise[open] summary.noise {
 	display: none;
 }
 h1, h2 {
@@ -297,10 +332,8 @@ img, video {
 	display: block;
 }
 img.emu {
-	width: 2em;
 	height: 2em;
 	vertical-align: middle;
-	margin: -2px;
 	object-fit: contain;
 }
 .nophone {
@@ -339,4 +372,51 @@ img.emu {
 		--fg-subtle: black;
 		--fg-limited: #a79;
 	}
+}
+
+/*
+ * CSP: style-src: self
+ */
+
+li.details {
+	list-style-type: none;
+	margin-left: -1em;
+}
+
+.left1em {
+	margin-left: 1em;
+}
+
+.hide {
+	display: none;
+}
+
+.text-left {
+	text-align: left;
+}
+.text-right {
+	text-align: right;
+}
+.text-center {
+	text-align: center;
+}
+
+.font08em {
+	font-size: 0.8em;
+}
+
+.font18em {
+	font-size: 1.8em;
+}
+
+.wsnowrap {
+	white-space: nowrap;
+}
+
+.skinny main {
+	max-width: 700px;
+}
+
+.fontmonospace {
+	font-family: monospace;
 }

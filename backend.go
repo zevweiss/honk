@@ -17,10 +17,16 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"net"
+	"net/http"
 	"net/rpc"
 	"os"
 	"os/exec"
+	"os/signal"
+	"strings"
+	"sync"
+	"syscall"
 
 	"humungus.tedunangst.com/r/webs/gate"
 	"humungus.tedunangst.com/r/webs/image"
@@ -55,7 +61,64 @@ func backendSockname() string {
 	return dataDir + "/backend.sock"
 }
 
+var bomFuck = []byte{0xef, 0xbb, 0xbf}
+
+func isSVG(data []byte) bool {
+	if bytes.HasPrefix(data, bomFuck) {
+		data = data[3:]
+	}
+	ct := http.DetectContentType(data)
+	if strings.HasPrefix(ct, "text/xml") || strings.HasPrefix(ct, "text/plain") {
+		if bytes.HasPrefix(data, []byte("<svg ")) || bytes.HasPrefix(data, []byte("<!DOCTYPE svg PUBLIC")) {
+			return true
+		}
+	}
+	return ct == "image/svg+xml"
+}
+
+func imageFromSVG(data []byte) (*image.Image, error) {
+	if bytes.HasPrefix(data, bomFuck) {
+		data = data[3:]
+	}
+	if len(data) > 100000 {
+		return nil, errors.New("my svg is too big")
+	}
+	svg := &image.Image{
+		Data:   data,
+		Format: "svg+xml",
+	}
+	return svg, nil
+}
+
+func bigshrink(data []byte) (*image.Image, error) {
+	if isSVG(data) {
+		return imageFromSVG(data)
+	}
+	cl, err := rpc.Dial("unix", backendSockname())
+	if err != nil {
+		return nil, err
+	}
+	defer cl.Close()
+	var res ShrinkerResult
+	err = cl.Call("Shrinker.Shrink", &ShrinkerArgs{
+		Buf: data,
+		Params: image.Params{
+			LimitSize: 14200 * 4200,
+			MaxWidth:  2600,
+			MaxHeight: 2048,
+			MaxSize:   768 * 1024,
+		},
+	}, &res)
+	if err != nil {
+		return nil, err
+	}
+	return res.Image, nil
+}
+
 func shrinkit(data []byte) (*image.Image, error) {
+	if isSVG(data) {
+		return imageFromSVG(data)
+	}
 	cl, err := rpc.Dial("unix", backendSockname())
 	if err != nil {
 		return nil, err
@@ -84,6 +147,7 @@ func orphancheck() {
 func backendServer() {
 	dlog.Printf("backend server running")
 	go orphancheck()
+	signal.Ignore(syscall.SIGINT)
 	shrinker := new(Shrinker)
 	srv := rpc.NewServer()
 	err := srv.Register(shrinker)
@@ -124,9 +188,23 @@ func runBackendServer() {
 	if err != nil {
 		elog.Panicf("can't exec backend: %s", err)
 	}
+	workinprogress++
+	var mtx sync.Mutex
+	go func() {
+		<-endoftheworld
+		mtx.Lock()
+		defer mtx.Unlock()
+		w.Close()
+		w = nil
+		readyalready <- true
+	}()
 	go func() {
 		proc.Wait()
-		elog.Printf("lost the backend: %s", err)
-		w.Close()
+		mtx.Lock()
+		defer mtx.Unlock()
+		if w != nil {
+			elog.Printf("lost the backend: %s", err)
+			w.Close()
+		}
 	}()
 }

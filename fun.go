@@ -66,7 +66,7 @@ func reverbolate(userid int64, honks []*Honk) {
 	somenumberedusers.Get(userid, &user)
 	for _, h := range honks {
 		h.What += "ed"
-		if h.What == "tonked" {
+		if h.What == "honked" && h.RID != "" {
 			h.What = "honked back"
 			h.Style += " subtle"
 		}
@@ -82,6 +82,7 @@ func reverbolate(userid int64, honks []*Honk) {
 			local = true
 		}
 		if local && h.What != "bonked" {
+			h.Noise = re_retag.ReplaceAllString(h.Noise, "")
 			h.Noise = re_memes.ReplaceAllString(h.Noise, "")
 		}
 		h.Username, h.Handle = handles(h.Honker)
@@ -124,10 +125,26 @@ func reverbolate(userid int64, honks []*Honk) {
 		h.Precis = demoji(h.Precis)
 		h.Noise = demoji(h.Noise)
 		h.Open = "open"
+		var misto string
 		for _, m := range h.Mentions {
 			if m.Where != h.Honker && !m.IsPresent(h.Noise) {
-				h.Noise = "(" + m.Who + ")" + h.Noise
+				misto += " " + m.Who
 			}
+		}
+		var mistag string
+		for _, o := range h.Onts {
+			if !OntIsPresent(o, h.Noise) {
+				mistag += " " + o
+			}
+		}
+		if len(misto) > 0 || len(mistag) > 0 {
+			if len(misto) > 0 {
+				misto = "(" + misto[1:] + ")<p>"
+			}
+			if len(mistag) > 0 {
+				mistag = "<p>(" + mistag[1:] + ")"
+			}
+			h.Noise = misto + h.Noise + mistag
 		}
 
 		zap := make(map[string]bool)
@@ -159,6 +176,17 @@ func reverbolate(userid int64, honks []*Honk) {
 				data = re_emus.ReplaceAllStringFunc(data, emuxifier)
 				io.WriteString(w, data)
 			}
+			if user != nil {
+				htf.RetargetLink = func(href string) string {
+					h2 := strings.ReplaceAll(href, "/@", "/users/")
+					for _, m := range h.Mentions {
+						if h2 == m.Where || href == m.Where {
+							return "/h?xid=" + url.QueryEscape(m.Where)
+						}
+					}
+					return href
+				}
+			}
 			p, _ := htf.String(h.Precis)
 			n, _ := htf.String(h.Noise)
 			h.Precis = string(p)
@@ -181,9 +209,6 @@ func reverbolate(userid int64, honks []*Honk) {
 
 		h.HTPrecis = template.HTML(h.Precis)
 		h.HTML = template.HTML(h.Noise)
-		if h.What == "wonked" {
-			h.HTML = "? wonk ?"
-		}
 		if redo := relingo[h.What]; redo != "" {
 			h.What = redo
 		}
@@ -221,7 +246,8 @@ func replaceimgsand(zap map[string]bool, absolute bool) func(node *html.Node) st
 func translatechonk(ch *Chonk) {
 	noise := ch.Noise
 	if ch.Format == "markdown" {
-		noise = markitzero(noise)
+		var marker mz.Marker
+		noise = marker.Mark(noise)
 	}
 	var htf htfilter.Filter
 	htf.SpanClasses = allowedclasses
@@ -297,12 +323,11 @@ func imaginate(honk *Honk) {
 	htf.String(honk.Noise)
 }
 
-func translate(honk *Honk) {
-	if honk.Format == "html" {
-		return
-	}
+var re_dangerous = regexp.MustCompile("^[a-zA-Z]{2}:")
+
+func precipitate(honk *Honk) {
 	noise := honk.Noise
-	if strings.HasPrefix(noise, "DZ:") {
+	if re_dangerous.MatchString(noise) {
 		idx := strings.Index(noise, "\n")
 		if idx == -1 {
 			honk.Precis = noise
@@ -311,16 +336,27 @@ func translate(honk *Honk) {
 			honk.Precis = noise[:idx]
 			noise = noise[idx+1:]
 		}
+		var marker mz.Marker
+		marker.Short = true
+		honk.Precis = marker.Mark(strings.TrimSpace(honk.Precis))
+		honk.Noise = noise
 	}
-	honk.Precis = markitzero(strings.TrimSpace(honk.Precis))
+}
+
+func translate(honk *Honk) {
+	if honk.Format == "html" {
+		return
+	}
+	noise := honk.Noise
 
 	var marker mz.Marker
 	marker.HashLinker = ontoreplacer
 	marker.AtLinker = attoreplacer
+	marker.AllowImages = true
 	noise = strings.TrimSpace(noise)
 	noise = marker.Mark(noise)
 	honk.Noise = noise
-	honk.Onts = oneofakind(marker.HashTags)
+	honk.Onts = oneofakind(append(honk.Onts, marker.HashTags...))
 	honk.Mentions = bunchofgrapes(marker.Mentions)
 }
 
@@ -405,6 +441,9 @@ var emucache = cache.New(cache.Options{Filler: func(ename string) (Emu, bool) {
 			continue
 		}
 		url := fmt.Sprintf("https://%s/emu/%s%s", serverName, fname, ext)
+		if develMode {
+			url = fmt.Sprintf("/emu/%s%s", fname, ext)
+		}
 		return Emu{ID: url, Name: ename, Type: "image/" + ext[1:]}, true
 	}
 	return Emu{Name: ename, ID: "", Type: "image/png"}, true
@@ -428,6 +467,9 @@ func herdofemus(noise string) []Emu {
 var re_memes = regexp.MustCompile("meme: ?([^\n]+)")
 var re_avatar = regexp.MustCompile("avatar: ?([^\n]+)")
 var re_banner = regexp.MustCompile("banner: ?([^\n]+)")
+var re_convoy = regexp.MustCompile("convoy: ?([^\n]+)")
+var re_retag = regexp.MustCompile("tags: ?([^\n]+)")
+var re_convalidate = regexp.MustCompile("^(https?|tag|data):")
 
 func memetize(honk *Honk) {
 	repl := func(x string) string {
@@ -464,7 +506,25 @@ func memetize(honk *Honk) {
 	honk.Noise = re_memes.ReplaceAllStringFunc(honk.Noise, repl)
 }
 
-var re_quickmention = regexp.MustCompile("(^|[ \n])@[[:alnum:]]+([ \n.]|$)")
+func recategorize(honk *Honk) {
+	repl := func(x string) string {
+		x = x[5:]
+		for _, t := range strings.Split(x, " ") {
+			if t == "" {
+				continue
+			}
+			if t[0] != '#' {
+				t = "#" + t
+			}
+			dlog.Printf("hashtag: %s", t)
+			honk.Onts = append(honk.Onts, t)
+		}
+		return ""
+	}
+	honk.Noise = re_retag.ReplaceAllStringFunc(honk.Noise, repl)
+}
+
+var re_quickmention = regexp.MustCompile("(^|[ \n])@[[:alnum:]_]+([ \n:;.,']|$)")
 
 func quickrename(s string, userid int64) string {
 	nonstop := true
@@ -479,7 +539,9 @@ func quickrename(s string, userid int64) string {
 			prefix += "@"
 			m = m[1:]
 			tail := ""
-			if last := m[len(m)-1]; last == ' ' || last == '\n' || last == '.' {
+			if last := m[len(m)-1]; last == ' ' || last == '\n' ||
+				last == ':' || last == ';' ||
+				last == '.' || last == ',' || last == '\'' {
 				tail = m[len(m)-1:]
 				m = m[:len(m)-1]
 			}
@@ -546,7 +608,7 @@ func attoreplacer(m string) string {
 }
 
 func ontoreplacer(h string) string {
-	return fmt.Sprintf(`<a href="https://%s/o/%s">%s</a>`, serverName,
+	return fmt.Sprintf(`<a class="mention hashtag" href="https://%s/o/%s">%s</a>`, serverName,
 		strings.ToLower(h[1:]), h)
 }
 
@@ -691,13 +753,9 @@ func savingthrow(keyname string) {
 }
 
 func keymatch(keyname string, actor string) string {
-	hash := strings.IndexByte(keyname, '#')
-	if hash == -1 {
-		hash = len(keyname)
-	}
-	owner := keyname[0:hash]
-	if owner == actor {
-		return originate(actor)
+	origin := originate(actor)
+	if origin == originate(keyname) {
+		return origin
 	}
 	return ""
 }

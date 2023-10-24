@@ -36,10 +36,8 @@ import (
 	"bufio"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha512"
 	"database/sql"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"os"
 	"os/signal"
@@ -52,23 +50,7 @@ import (
 	"humungus.tedunangst.com/r/webs/login"
 )
 
-var savedassetparams = make(map[string]string)
-
 var re_plainname = regexp.MustCompile("^[[:alnum:]_-]+$")
-
-func getassetparam(file string) string {
-	if p, ok := savedassetparams[file]; ok {
-		return p
-	}
-	data, err := ioutil.ReadFile(file)
-	if err != nil {
-		return ""
-	}
-	hasher := sha512.New()
-	hasher.Write(data)
-
-	return fmt.Sprintf("?v=%.8x", hasher.Sum(nil))
-}
 
 var dbtimeformat = "2006-01-02 15:04:05"
 
@@ -76,6 +58,7 @@ var alreadyopendb *sql.DB
 var stmtConfig *sql.Stmt
 
 func initdb() {
+	blobdbname := dataDir + "/blob.db"
 	dbname := dataDir + "/honk.db"
 	_, err := os.Stat(dbname)
 	if err == nil {
@@ -88,15 +71,17 @@ func initdb() {
 	alreadyopendb = db
 	defer func() {
 		os.Remove(dbname)
+		os.Remove(blobdbname)
 		os.Exit(1)
 	}()
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
 		C.termecho(1)
 		fmt.Printf("\n")
 		os.Remove(dbname)
+		os.Remove(blobdbname)
 		os.Exit(1)
 	}()
 
@@ -114,7 +99,7 @@ func initdb() {
 	}
 	r := bufio.NewReader(os.Stdin)
 
-	initblobdb()
+	initblobdb(blobdbname)
 
 	prepareStatements(db)
 
@@ -170,8 +155,7 @@ func initdb() {
 	os.Exit(0)
 }
 
-func initblobdb() {
-	blobdbname := dataDir + "/blob.db"
+func initblobdb(blobdbname string) {
 	_, err := os.Stat(blobdbname)
 	if err == nil {
 		elog.Fatalf("%s already exists", blobdbname)
@@ -209,7 +193,7 @@ func adduser() {
 	defer func() {
 		os.Exit(1)
 	}()
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
@@ -263,7 +247,7 @@ func chpass(username string) {
 	defer func() {
 		os.Exit(1)
 	}()
-	c := make(chan os.Signal)
+	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	go func() {
 		<-c
@@ -446,6 +430,10 @@ func openListener() (net.Listener, error) {
 	err := getconfig("listenaddr", &listenAddr)
 	if err != nil {
 		return nil, err
+	}
+	if strings.HasPrefix(listenAddr, "fcgi:") {
+		listenAddr = listenAddr[5:]
+		usefcgi = true
 	}
 	if listenAddr == "" {
 		return nil, fmt.Errorf("must have listenaddr")

@@ -16,26 +16,13 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"html/template"
-	golog "log"
-	"log/syslog"
-	notrand "math/rand"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"humungus.tedunangst.com/r/webs/httpsig"
-	"humungus.tedunangst.com/r/webs/log"
 )
-
-var softwareVersion = "develop"
-
-func init() {
-	notrand.Seed(time.Now().Unix())
-}
 
 type WhatAbout struct {
 	ID      int64
@@ -51,15 +38,16 @@ type WhatAbout struct {
 }
 
 type UserOptions struct {
-	SkinnyCSS  bool   `json:",omitempty"`
-	OmitImages bool   `json:",omitempty"`
-	MentionAll bool   `json:",omitempty"`
-	Avatar     string `json:",omitempty"`
-	Banner     string `json:",omitempty"`
-	MapLink    string `json:",omitempty"`
-	Reaction   string `json:",omitempty"`
-	MeCount    int64
-	ChatCount  int64
+	SkinnyCSS    bool   `json:",omitempty"`
+	OmitImages   bool   `json:",omitempty"`
+	MentionAll   bool   `json:",omitempty"`
+	InlineQuotes bool   `json:",omitempty"`
+	Avatar       string `json:",omitempty"`
+	Banner       string `json:",omitempty"`
+	MapLink      string `json:",omitempty"`
+	Reaction     string `json:",omitempty"`
+	MeCount      int64
+	ChatCount    int64
 }
 
 type KeyInfo struct {
@@ -103,8 +91,6 @@ type Honk struct {
 	Time     *Time
 	Mentions []Mention
 	Badonks  []Badonk
-	Wonkles  string
-	Guesses  template.HTML
 }
 
 type Badonk struct {
@@ -145,6 +131,31 @@ func (mention *Mention) IsPresent(noise string) bool {
 	return strings.Contains(noise, ">@"+nick) || strings.Contains(noise, "@<span>"+nick)
 }
 
+func OntIsPresent(ont, noise string) bool {
+	ont = strings.ToLower(ont[1:])
+	idx := strings.IndexByte(noise, '#')
+	for idx >= 0 {
+		if strings.HasPrefix(noise[idx:], "#<span>") {
+			idx += 6
+		}
+		idx += 1
+		if idx+len(ont) >= len(noise) {
+			return false
+		}
+		test := noise[idx : idx+len(ont)]
+		test = strings.ToLower(test)
+		if test == ont {
+			return true
+		}
+		newidx := strings.IndexByte(noise[idx:], '#')
+		if newidx == -1 {
+			return false
+		}
+		idx += newidx
+	}
+	return false
+}
+
 type OldRevision struct {
 	Precis string
 	Noise  string
@@ -156,7 +167,6 @@ const (
 	flagIsSaved    = 4
 	flagIsUntagged = 8
 	flagIsReacted  = 16
-	flagIsWonked   = 32
 )
 
 func (honk *Honk) IsAcked() bool {
@@ -177,10 +187,6 @@ func (honk *Honk) IsUntagged() bool {
 
 func (honk *Honk) IsReacted() bool {
 	return honk.Flags&flagIsReacted != 0
-}
-
-func (honk *Honk) IsWonked() bool {
-	return honk.Flags&flagIsWonked != 0
 }
 
 type Donk struct {
@@ -259,166 +265,3 @@ const (
 	SomeActor
 	SomeCollection
 )
-
-var serverName string
-var serverPrefix string
-var masqName string
-var dataDir = "."
-var viewDir = "."
-var iconName = "icon.png"
-var serverMsg template.HTML
-var aboutMsg template.HTML
-var loginMsg template.HTML
-
-func ElaborateUnitTests() {
-}
-
-func unplugserver(hostname string) {
-	db := opendatabase()
-	xid := fmt.Sprintf("%%https://%s/%%", hostname)
-	db.Exec("delete from honkers where xid like ? and flavor = 'dub'", xid)
-	db.Exec("delete from doovers where rcpt like ?", xid)
-}
-
-func reexecArgs(cmd string) []string {
-	args := []string{"-datadir", dataDir}
-	args = append(args, log.Args()...)
-	args = append(args, cmd)
-	return args
-}
-
-var elog, ilog, dlog *golog.Logger
-
-func main() {
-	flag.StringVar(&dataDir, "datadir", dataDir, "data directory")
-	flag.StringVar(&viewDir, "viewdir", viewDir, "view directory")
-	flag.Parse()
-
-	log.Init(log.Options{Progname: "honk", Facility: syslog.LOG_UUCP})
-	elog = log.E
-	ilog = log.I
-	dlog = log.D
-
-	args := flag.Args()
-	cmd := "run"
-	if len(args) > 0 {
-		cmd = args[0]
-	}
-	switch cmd {
-	case "init":
-		initdb()
-	case "upgrade":
-		upgradedb()
-	case "version":
-		fmt.Println(softwareVersion)
-		os.Exit(0)
-	}
-	db := opendatabase()
-	dbversion := 0
-	getconfig("dbversion", &dbversion)
-	if dbversion != myVersion {
-		elog.Fatal("incorrect database version. run upgrade.")
-	}
-	getconfig("servermsg", &serverMsg)
-	getconfig("aboutmsg", &aboutMsg)
-	getconfig("loginmsg", &loginMsg)
-	getconfig("servername", &serverName)
-	getconfig("masqname", &masqName)
-	if masqName == "" {
-		masqName = serverName
-	}
-	serverPrefix = fmt.Sprintf("https://%s/", serverName)
-	getconfig("usersep", &userSep)
-	getconfig("honksep", &honkSep)
-	getconfig("devel", &develMode)
-	getconfig("fasttimeout", &fastTimeout)
-	getconfig("slowtimeout", &slowTimeout)
-	getconfig("signgets", &signGets)
-	prepareStatements(db)
-	switch cmd {
-	case "admin":
-		adminscreen()
-	case "import":
-		if len(args) != 4 {
-			elog.Fatal("import username mastodon|twitter srcdir")
-		}
-		importMain(args[1], args[2], args[3])
-	case "devel":
-		if len(args) != 2 {
-			elog.Fatal("need an argument: devel (on|off)")
-		}
-		switch args[1] {
-		case "on":
-			setconfig("devel", 1)
-		case "off":
-			setconfig("devel", 0)
-		default:
-			elog.Fatal("argument must be on or off")
-		}
-	case "setconfig":
-		if len(args) != 3 {
-			elog.Fatal("need an argument: setconfig key val")
-		}
-		var val interface{}
-		var err error
-		if val, err = strconv.Atoi(args[2]); err != nil {
-			val = args[2]
-		}
-		setconfig(args[1], val)
-	case "adduser":
-		adduser()
-	case "deluser":
-		if len(args) < 2 {
-			fmt.Fprintf(os.Stderr, "usage: honk deluser username\n")
-			os.Exit(1)
-		}
-		deluser(args[1])
-	case "chpass":
-		if len(args) < 2 {
-			fmt.Printf("usage: honk chpass username\n")
-			return
-		}
-		chpass(args[1])
-	case "cleanup":
-		arg := "30"
-		if len(args) > 1 {
-			arg = args[1]
-		}
-		cleanupdb(arg)
-	case "unplug":
-		if len(args) < 2 {
-			fmt.Fprintf(os.Stderr, "usage: honk unplug servername\n")
-			os.Exit(1)
-		}
-		name := args[1]
-		unplugserver(name)
-	case "backup":
-		if len(args) < 2 {
-			fmt.Fprintf(os.Stderr, "usage: honk backup dirname\n")
-			os.Exit(1)
-		}
-		name := args[1]
-		svalbard(name)
-	case "ping":
-		if len(args) < 3 {
-			fmt.Fprintf(os.Stderr, "usage: honk ping (from username) (to username or url)\n")
-			os.Exit(1)
-		}
-		name := args[1]
-		targ := args[2]
-		user, err := butwhatabout(name)
-		if err != nil {
-			elog.Printf("unknown user")
-			os.Exit(1)
-		}
-		ping(user, targ)
-	case "run":
-		serve()
-	case "backend":
-		backendServer()
-	case "test":
-		ElaborateUnitTests()
-	default:
-		elog.Fatal("unknown command")
-	}
-}
